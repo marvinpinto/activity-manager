@@ -12,6 +12,7 @@ from doing so.
 ### Development
 - `mvn clean package`
 - `java -cp fit.jar:swim-editor/target/swim-editor-1.0-SNAPSHOT.jar ca.disjoint.fitcustomizer.SwimEditor`
+- `mvn formatter:format`
 
 ### Tools
 - View the contents of a file within the jar using: `unzip -q -c myarchive.jar path/to/file`
