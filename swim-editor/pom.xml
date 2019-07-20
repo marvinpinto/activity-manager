@@ -52,6 +52,7 @@
             </manifest>
             <manifestEntries>
               <Class-Path>fit.jar</Class-Path>
+              <Multi-Release>true</Multi-Release>
             </manifestEntries>
           </archive>
         </configuration>
