@@ -16,10 +16,8 @@ public class OutputSwimSummary {
         try {
             in = new FileInputStream(fitFile);
         } catch (IOException ex) {
-            String msg = String.format("Could not open file \"%s\". Error: %s", fitFile.getName(), ex.getMessage());
-            LOGGER.log(Level.ERROR, msg);
-            LOGGER.log(Level.DEBUG, ex);
-            throw new RuntimeException(msg);
+            throw new RuntimeException(
+                    String.format("Could not open file \"%s\" - %s", fitFile.getName(), ex.getMessage()), ex);
         }
     }
 }

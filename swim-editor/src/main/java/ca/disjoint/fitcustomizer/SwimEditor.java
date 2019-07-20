@@ -11,6 +11,7 @@ import picocli.CommandLine.IVersionProvider;
 import java.io.File;
 import java.net.URL;
 import java.util.Properties;
+import java.util.concurrent.Callable;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -20,7 +21,7 @@ import org.apache.logging.log4j.core.config.Configurator;
 import ca.disjoint.fitcustomizer.OutputSwimSummary;
 
 @Command(name = "SwimEditor.jar", mixinStandardHelpOptions = true, versionProvider = SwimEditor.PropertiesVersionProvider.class, description = "Edit Garmin swim .fit files to add heartrate data, correct strokes, and more.")
-public class SwimEditor implements Runnable {
+public class SwimEditor implements Callable<Integer> {
     @Option(names = { "-v", "--verbose" }, description = "Verbose mode. Helpful for troubleshooting. ")
     private boolean verbose = false;
 
@@ -29,13 +30,25 @@ public class SwimEditor implements Runnable {
 
     private static final Logger LOGGER = LogManager.getLogger("SwimEditor");
 
-    public void run() {
+    public Integer call() {
         if (verbose) {
             Configurator.setLevel("SwimEditor", Level.DEBUG);
             LOGGER.log(Level.INFO, "Verbose logging enabled");
         }
 
-        OutputSwimSummary summary = new OutputSwimSummary(swimmingFitFile);
+        try {
+            OutputSwimSummary summary = new OutputSwimSummary(swimmingFitFile);
+        } catch (Exception ex) {
+            String msg = String.format("Error: %s", ex.getMessage());
+            LOGGER.log(Level.ERROR, msg);
+
+            if (verbose) {
+                ex.printStackTrace();
+            }
+            return 1;
+        }
+
+        return 0;
     }
 
     public static void main(String[] args) {
