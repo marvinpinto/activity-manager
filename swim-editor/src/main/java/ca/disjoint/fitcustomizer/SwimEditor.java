@@ -1,34 +1,46 @@
 package ca.disjoint.fitcustomizer;
 
-import com.garmin.fit.*;
-import com.garmin.fit.plugins.*;
-import com.garmin.fit.csv.MesgCSVWriter;
+import com.garmin.fit.Fit;
 
-import java.io.FileInputStream;
-import java.io.InputStream;
-import ca.disjoint.fitcustomizer.Config;
+import picocli.CommandLine.Command;
+import picocli.CommandLine.Option;
+import picocli.CommandLine;
+import picocli.CommandLine.Option;
+import picocli.CommandLine.IVersionProvider;
 
-/**
- * Hello world!
- *
- */
-public class SwimEditor implements RecordMesgListener, HrMesgListener {
-    private MesgCSVWriter mesgWriter;
+import java.io.File;
+import java.net.URL;
+import java.util.Properties;
+
+@Command(name = "SwimEditor.jar", mixinStandardHelpOptions = true, versionProvider = SwimEditor.PropertiesVersionProvider.class, description = "Edit Garmin swim .fit files to add heartrate data, correct strokes, and more.")
+public class SwimEditor implements Runnable {
+    @Option(names = { "-v", "--verbose" }, description = "Verbose mode. Helpful for troubleshooting. ")
+    private boolean verbose = false;
+
+    public void run() {
+        if (verbose) {
+            System.out.println("VERBOSE");
+        } else {
+            System.out.println("Not very verbose");
+        }
+    }
 
     public static void main(String[] args) {
-        Config conf = new Config();
-
-        System.out.printf("VERSION: %s\n", conf.VERSION);
-
-        System.out.printf("FIT Hr Record Reader Example Application - Protocol %d.%d Profile %.2f %s\n",
-                Fit.PROTOCOL_VERSION_MAJOR, Fit.PROTOCOL_VERSION_MINOR, Fit.PROFILE_VERSION / 100.0, Fit.PROFILE_TYPE);
+        int exitCode = new CommandLine(new SwimEditor()).execute(args);
+        System.exit(exitCode);
     }
 
-    public void onMesg(RecordMesg mesg) {
-        mesgWriter.onMesg(mesg);
-    }
-
-    public void onMesg(HrMesg mesg) {
-        mesgWriter.onMesg(mesg);
+    static class PropertiesVersionProvider implements IVersionProvider {
+        public String[] getVersion() throws Exception {
+            URL url = getClass().getResource("/META-INF/application.properties");
+            if (url == null) {
+                return new String[] { "N/A" };
+            }
+            Properties properties = new Properties();
+            properties.load(url.openStream());
+            return new String[] { "SwimEditor.jar v" + properties.getProperty("application.version"),
+                    String.format("FIT protocol %d.%d, profile %.2f %s", Fit.PROTOCOL_VERSION_MAJOR,
+                            Fit.PROTOCOL_VERSION_MINOR, Fit.PROFILE_VERSION / 100.0, Fit.PROFILE_TYPE) };
+        }
     }
 }
