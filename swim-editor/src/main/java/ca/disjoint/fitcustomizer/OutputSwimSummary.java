@@ -9,6 +9,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.util.Arrays;
 
 import com.garmin.fit.FileIdMesgListener;
 import com.garmin.fit.LapMesgListener;
@@ -29,6 +30,10 @@ import com.garmin.fit.MesgBroadcaster;
 import com.garmin.fit.DeviceIndex;
 import com.garmin.fit.GarminProduct;
 import com.garmin.fit.Manufacturer;
+import com.garmin.fit.HrMesg;
+import com.garmin.fit.HrMesgListener;
+import com.garmin.fit.RecordMesgListener;
+import com.garmin.fit.RecordMesg;
 
 public class OutputSwimSummary {
     private static final Logger LOGGER = LogManager.getLogger("SwimEditor");
@@ -64,6 +69,8 @@ public class OutputSwimSummary {
         mesgBroadcaster.addListener((ActivityMesgListener) reader);
         mesgBroadcaster.addListener((EventMesgListener) reader);
         mesgBroadcaster.addListener((DeviceInfoMesgListener) reader);
+        mesgBroadcaster.addListener((HrMesgListener) reader);
+        mesgBroadcaster.addListener((RecordMesgListener) reader);
 
         LOGGER.log(Level.DEBUG, "Decoding FIT file");
         boolean status = decode.read(in, mesgBroadcaster, mesgBroadcaster);
@@ -73,8 +80,31 @@ public class OutputSwimSummary {
         LOGGER.log(Level.DEBUG, "FIT file handle successfully closed");
     }
 
-    private static class DataReader implements FileIdMesgListener, LapMesgListener, LengthMesgListener,
-            SessionMesgListener, ActivityMesgListener, EventMesgListener, DeviceInfoMesgListener {
+    private static class DataReader
+            implements FileIdMesgListener, LapMesgListener, LengthMesgListener, SessionMesgListener,
+            ActivityMesgListener, EventMesgListener, DeviceInfoMesgListener, HrMesgListener, RecordMesgListener {
+
+        @Override
+        public void onMesg(RecordMesg mesg) {
+            if (mesg.getHeartRate() != null) {
+                LOGGER.log(Level.DEBUG, "**************************");
+                LOGGER.log(Level.DEBUG, "Record Message:");
+                LOGGER.log(Level.DEBUG, "  Time: " + mesg.getTimestamp());
+                LOGGER.log(Level.DEBUG, "  HR: " + mesg.getHeartRate());
+                LOGGER.log(Level.DEBUG, "**************************");
+            }
+        }
+
+        @Override
+        public void onMesg(HrMesg mesg) {
+            LOGGER.log(Level.DEBUG, "**************************");
+            LOGGER.log(Level.DEBUG, "HR Message:");
+            LOGGER.log(Level.DEBUG, "  Number of timestamps: " + mesg.getNumEventTimestamp());
+            LOGGER.log(Level.DEBUG, "  Timestamps: " + Arrays.toString(mesg.getEventTimestamp()));
+            LOGGER.log(Level.DEBUG, "  Number of filtered BPMs: " + mesg.getNumFilteredBpm());
+            LOGGER.log(Level.DEBUG, "  Filtered BPMs: " + Arrays.toString(mesg.getFilteredBpm()));
+            LOGGER.log(Level.DEBUG, "**************************");
+        }
 
         @Override
         public void onMesg(DeviceInfoMesg mesg) {
