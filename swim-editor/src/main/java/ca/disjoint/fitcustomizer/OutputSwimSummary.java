@@ -115,6 +115,7 @@ public class OutputSwimSummary {
         private BufferEncoder updatedFitFile;
         private int lapCtr = 1;
         private int lengthCtr = 0;
+        private SwimStroke lapStroke;
 
         public DataReader() {
             summaryData = new StringBuilder();
@@ -123,6 +124,7 @@ public class OutputSwimSummary {
             lapSummaryData.append("-----------------" + System.lineSeparator());
             lapSummaryData.append("Lap & Length Data" + System.lineSeparator());
             lapSummaryData.append("-----------------" + System.lineSeparator());
+            lapStroke = SwimStroke.INVALID;
         }
 
         public String getSummaryData() {
@@ -241,8 +243,8 @@ public class OutputSwimSummary {
 
             // Append this info to the lap summary data
             if (mesg.getSwimStroke() != null) {
-                String summary = String.format("Lap %d: %.0fm (%d lengths, %s)", lapCtr - 1, distance,
-                        mesg.getNumLengths(), convertFloatToStringDate(mesg.getTotalElapsedTime()));
+                String summary = String.format("Lap %d: %.0fm (%d lengths, %s, %s)", lapCtr - 1, distance,
+                        mesg.getNumLengths(), convertFloatToStringDate(mesg.getTotalElapsedTime()), lapStroke);
                 lapSummaryData.append(summary);
                 lapSummaryData.append(System.lineSeparator());
                 lapSummaryData.append(System.lineSeparator());
@@ -251,6 +253,12 @@ public class OutputSwimSummary {
             // Construct the Lap message for the updated FIT file
             LapMesg lapMesg = mesg;
             lapMesg.setTotalDistance(distance);
+            if (mesg.getSwimStroke() != null) {
+                lapMesg.setSwimStroke(lapStroke);
+
+                // Reset the lap stroke
+                lapStroke = SwimStroke.INVALID;
+            }
             updatedFitFile.write(lapMesg);
         }
 
@@ -284,11 +292,20 @@ public class OutputSwimSummary {
                 stroke = textIO.newEnumInputReader(SwimStroke.class).withDefaultValue(stroke).read(prompt);
             }
 
-            // Append this info to the lap summary data
             if (stroke != null) {
+                // Append this info to the lap summary data
                 lapSummaryData.append(String.format("%s: %s (%d strokes)%s", stroke,
                         convertFloatToStringDate(mesg.getTotalElapsedTime()), mesg.getTotalStrokes(),
                         System.lineSeparator()));
+
+                // Set the appropriate "lap" stroke
+                if (stroke != lapStroke) {
+                    if (lapStroke == SwimStroke.INVALID) {
+                        lapStroke = stroke;
+                    } else if (lapStroke != SwimStroke.MIXED) {
+                        lapStroke = SwimStroke.MIXED;
+                    }
+                }
             }
 
             // Construct the Length message for the updated FIT file
