@@ -14,6 +14,7 @@ import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.time.ZoneId;
 
+import com.garmin.fit.Fit;
 import com.garmin.fit.FileIdMesgListener;
 import com.garmin.fit.LapMesgListener;
 import com.garmin.fit.LengthMesgListener;
@@ -38,6 +39,7 @@ import com.garmin.fit.HrMesg;
 import com.garmin.fit.HrMesgListener;
 import com.garmin.fit.RecordMesgListener;
 import com.garmin.fit.RecordMesg;
+import com.garmin.fit.BufferEncoder;
 
 public class OutputSwimSummary {
     private static final Logger LOGGER = LogManager.getLogger("SwimEditor");
@@ -94,22 +96,32 @@ public class OutputSwimSummary {
             ActivityMesgListener, EventMesgListener, DeviceInfoMesgListener, HrMesgListener, RecordMesgListener {
         private StringBuilder summaryData;
         private float movingTime = 0;
+        private BufferEncoder updatedFitFile;
 
         public DataReader() {
             summaryData = new StringBuilder();
+            updatedFitFile = new BufferEncoder(Fit.ProtocolVersion.V2_0);
         }
 
         public String getSummaryData() {
             return summaryData.toString();
         }
 
+        public byte[] getUpdatedFitFile() {
+            return updatedFitFile.close();
+        }
+
         @Override
         public void onMesg(RecordMesg mesg) {
+            // Write out the record message as-is to the updated FIT file
+            updatedFitFile.write(mesg);
+
             if (mesg.getHeartRate() != null) {
                 LOGGER.log(Level.DEBUG, "**************************");
                 LOGGER.log(Level.DEBUG, "Record Message:");
                 LOGGER.log(Level.DEBUG, "  Time: " + mesg.getTimestamp());
                 LOGGER.log(Level.DEBUG, "  HR: " + mesg.getHeartRate());
+                LOGGER.log(Level.DEBUG, "  Distance: " + mesg.getDistance());
                 LOGGER.log(Level.DEBUG, "**************************");
             }
         }
@@ -127,6 +139,9 @@ public class OutputSwimSummary {
 
         @Override
         public void onMesg(DeviceInfoMesg mesg) {
+            // Write out the device info message as-is to the updated FIT file
+            updatedFitFile.write(mesg);
+
             LOGGER.log(Level.DEBUG, "**************************");
             LOGGER.log(Level.DEBUG, "Devce Message:");
             LOGGER.log(Level.DEBUG, "  Time: " + mesg.getTimestamp());
@@ -140,6 +155,9 @@ public class OutputSwimSummary {
 
         @Override
         public void onMesg(EventMesg mesg) {
+            // Write out the event message as-is to the updated FIT file
+            updatedFitFile.write(mesg);
+
             LOGGER.log(Level.DEBUG, "**************************");
             LOGGER.log(Level.DEBUG, "Event Message:");
             LOGGER.log(Level.DEBUG, "  Event: " + mesg.getEvent());
@@ -149,25 +167,43 @@ public class OutputSwimSummary {
 
         @Override
         public void onMesg(ActivityMesg mesg) {
+            summaryData.append(
+                    "Timer time: " + convertFloatToStringDate(mesg.getTotalTimerTime()) + System.lineSeparator());
+
+            // Write out the activity message as-is to the updated FIT file
+            updatedFitFile.write(mesg);
+
             LOGGER.log(Level.DEBUG, "**************************");
-            LOGGER.log(Level.DEBUG, "Acitivty Message:");
+            LOGGER.log(Level.DEBUG, "Activity Message:");
             LOGGER.log(Level.DEBUG, "  Event: " + mesg.getEvent());
+            LOGGER.log(Level.DEBUG, "  Event Group: " + mesg.getEventGroup());
             LOGGER.log(Level.DEBUG, "  Event type: " + mesg.getEventType());
             LOGGER.log(Level.DEBUG, "  Activity type: " + mesg.getType());
+            LOGGER.log(Level.DEBUG, "  Local timestamp: " + mesg.getLocalTimestamp());
+            LOGGER.log(Level.DEBUG, "  Number of sessions: " + mesg.getNumSessions());
             LOGGER.log(Level.DEBUG, "  Time: " + mesg.getTimestamp());
+            LOGGER.log(Level.DEBUG, "  Total timer time: " + mesg.getTotalTimerTime() + " ("
+                    + convertFloatToStringDate(mesg.getTotalTimerTime()) + ")");
             LOGGER.log(Level.DEBUG, "**************************");
         }
 
         @Override
         public void onMesg(LapMesg mesg) {
+            // Construct the Lap message for the updated FIT file
+            LapMesg lapMesg = mesg;
+            lapMesg.setTotalDistance(mesg.getTotalDistance());
+            updatedFitFile.write(lapMesg);
+
             LOGGER.log(Level.DEBUG, "**************************");
             LOGGER.log(Level.DEBUG, "Lap Message:");
             LOGGER.log(Level.DEBUG, "  Index: " + mesg.getMessageIndex());
             LOGGER.log(Level.DEBUG, "  Event: " + mesg.getEvent());
+            LOGGER.log(Level.DEBUG, "  Event group: " + mesg.getEventGroup());
             LOGGER.log(Level.DEBUG, "  Event type: " + mesg.getEventType());
             LOGGER.log(Level.DEBUG, "  Start time: " + mesg.getStartTime());
             LOGGER.log(Level.DEBUG, "  End time: " + mesg.getTimestamp());
             LOGGER.log(Level.DEBUG, "  Pool Lengths: " + mesg.getNumLengths());
+            LOGGER.log(Level.DEBUG, "  Distance: " + mesg.getTotalDistance());
             LOGGER.log(Level.DEBUG, "**************************");
         }
 
@@ -177,6 +213,9 @@ public class OutputSwimSummary {
             if (mesg.getLengthType() == LengthType.ACTIVE) {
                 movingTime += mesg.getTotalElapsedTime();
             }
+
+            // Write out the record as-is to the updated FIT file
+            updatedFitFile.write(mesg);
 
             LOGGER.log(Level.DEBUG, "**************************");
             LOGGER.log(Level.DEBUG, "Length Message:");
@@ -210,10 +249,21 @@ public class OutputSwimSummary {
             summaryData.append("Elapsed time: " + elapsedTime + System.lineSeparator());
             summaryData.append("Moving time: " + convertFloatToStringDate(movingTime) + System.lineSeparator());
 
+            // Construct the Session message for the updated FIT file
+            SessionMesg sessionMesg = mesg;
+            sessionMesg.setPoolLength(mesg.getPoolLength());
+            sessionMesg.setPoolLengthUnit(mesg.getPoolLengthUnit());
+            sessionMesg.setTotalDistance(mesg.getTotalDistance());
+            updatedFitFile.write(sessionMesg);
+
             LOGGER.log(Level.DEBUG, "**************************");
             LOGGER.log(Level.DEBUG, "Session Message:");
+            LOGGER.log(Level.DEBUG, "  Event: " + mesg.getEvent());
+            LOGGER.log(Level.DEBUG, "  Event group: " + mesg.getEventGroup());
+            LOGGER.log(Level.DEBUG, "  Event type: " + mesg.getEventType());
             LOGGER.log(Level.DEBUG, "  Index: " + mesg.getMessageIndex());
             LOGGER.log(Level.DEBUG, "  Sport: " + mesg.getSport());
+            LOGGER.log(Level.DEBUG, "  Sport index: " + mesg.getSportIndex());
             LOGGER.log(Level.DEBUG, "  Sub Sport: " + mesg.getSubSport());
             LOGGER.log(Level.DEBUG, "  Start time: " + mesg.getStartTime());
             LOGGER.log(Level.DEBUG, "  End time: " + mesg.getTimestamp());
@@ -226,6 +276,7 @@ public class OutputSwimSummary {
             LOGGER.log(Level.DEBUG, "  Average lap time: " + mesg.getAvgLapTime());
             LOGGER.log(Level.DEBUG, "  Average stoke count: " + mesg.getAvgStrokeCount());
             LOGGER.log(Level.DEBUG, "  Pool length: " + mesg.getPoolLength());
+            LOGGER.log(Level.DEBUG, "  Pool length unit: " + mesg.getPoolLengthUnit());
             LOGGER.log(Level.DEBUG, "  Total distance: " + mesg.getTotalDistance());
             LOGGER.log(Level.DEBUG, "**************************");
         }
@@ -235,6 +286,9 @@ public class OutputSwimSummary {
             summaryData.append("Device: " + Manufacturer.getStringFromValue(mesg.getManufacturer()) + " "
                     + GarminProduct.getStringFromValue(mesg.getGarminProduct()) + System.lineSeparator());
             summaryData.append("Date: " + mesg.getTimeCreated() + System.lineSeparator());
+
+            // Write out the fileid message as-is to the updated FIT file
+            updatedFitFile.write(mesg);
 
             LOGGER.log(Level.DEBUG, "**************************");
             LOGGER.log(Level.DEBUG, "File ID Message:");
@@ -247,6 +301,7 @@ public class OutputSwimSummary {
             LOGGER.log(Level.DEBUG, "  Serial: " + mesg.getSerialNumber());
             LOGGER.log(Level.DEBUG, "  Type: " + mesg.getType());
             LOGGER.log(Level.DEBUG, "**************************");
+
         }
     }
 }
