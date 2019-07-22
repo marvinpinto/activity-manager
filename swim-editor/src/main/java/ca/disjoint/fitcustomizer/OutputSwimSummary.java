@@ -13,6 +13,7 @@ import java.util.Arrays;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.time.ZoneId;
+import java.util.Random;
 
 import com.garmin.fit.Fit;
 import com.garmin.fit.FileIdMesgListener;
@@ -41,6 +42,7 @@ import com.garmin.fit.RecordMesgListener;
 import com.garmin.fit.RecordMesg;
 import com.garmin.fit.BufferEncoder;
 import com.garmin.fit.SwimStroke;
+import com.garmin.fit.DateTime;
 
 import org.beryx.textio.TextIO;
 import org.beryx.textio.TextIoFactory;
@@ -51,14 +53,17 @@ public class OutputSwimSummary {
     private TextIO textIO;
     private float poolLength;
     private boolean interactiveEditMode;
+    private boolean randomizeCreationTime;
 
-    public OutputSwimSummary(File fitFile, boolean editMode) throws FileNotFoundException, IOException {
+    public OutputSwimSummary(File fitFile, boolean editMode, boolean randomizeStart)
+            throws FileNotFoundException, IOException {
         FileInputStream in;
         Decode decode = new Decode();
         MesgBroadcaster mesgBroadcaster = new MesgBroadcaster(decode);
         textIO = TextIoFactory.getTextIO();
         reader = new DataReader();
         interactiveEditMode = editMode;
+        randomizeCreationTime = randomizeStart;
 
         LOGGER.log(Level.DEBUG, "Opening input file: " + fitFile.getName());
         in = new FileInputStream(fitFile);
@@ -387,12 +392,25 @@ public class OutputSwimSummary {
             LOGGER.log(Level.DEBUG, "  Type: " + mesg.getType());
             LOGGER.log(Level.DEBUG, "**************************");
 
+            DateTime creationTime = mesg.getTimeCreated();
+            if (randomizeCreationTime) {
+                // Set the creation time to be 1 < n < 100 seconds in the past
+                Random r = new Random();
+                long low = 1l;
+                long high = 100l;
+                long timestamp = (low + (long) (Math.random() * (high - low))) * -1;
+                LOGGER.log(Level.DEBUG, "Generate random timestamp value " + timestamp);
+                creationTime.add(timestamp);
+            }
+
             summaryData.append("Device: " + Manufacturer.getStringFromValue(mesg.getManufacturer()) + " "
                     + GarminProduct.getStringFromValue(mesg.getGarminProduct()) + System.lineSeparator());
-            summaryData.append("Date: " + mesg.getTimeCreated() + System.lineSeparator());
+            summaryData.append("Date: " + creationTime + System.lineSeparator());
 
-            // Write out the fileid message as-is to the updated FIT file
-            updatedFitFile.write(mesg);
+            // Construct the File ID message for the updated FIT file
+            FileIdMesg fileIdMesg = mesg;
+            fileIdMesg.setTimeCreated(creationTime);
+            updatedFitFile.write(fileIdMesg);
         }
     }
 }

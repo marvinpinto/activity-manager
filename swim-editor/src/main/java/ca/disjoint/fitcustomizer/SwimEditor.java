@@ -23,14 +23,19 @@ import ca.disjoint.fitcustomizer.OutputSwimSummary;
 @Command(name = "SwimEditor.jar", mixinStandardHelpOptions = true, versionProvider = SwimEditor.PropertiesVersionProvider.class, description = "Edit Garmin swim .fit files to add heartrate data, correct strokes, and more.")
 public class SwimEditor implements Callable<Integer> {
     @Option(names = { "-v",
-            "--verbose" }, description = "Verbose mode. Helpful for troubleshooting. Logs available in \"application.log\"")
+            "--verbose" }, description = "Verbose mode. Helpful for troubleshooting. Logs are available in the \"application.log\" file in the current directory. (default: ${DEFAULT-VALUE})")
     private boolean verbose = false;
 
     @Parameters(arity = "1", paramLabel = "FILE", description = "Swimming FIT file to process.")
     private File swimmingFitFile;
 
-    @Option(names = { "-e", "--edit" }, description = "Enable interactive editing (pool length, strokes, etc)")
+    @Option(names = { "-e",
+            "--edit" }, description = "Interactively edit the pool length, stroke types, and other attributes. (default: ${DEFAULT-VALUE})")
     private boolean editMode = false;
+
+    @Option(names = {
+            "--randomize-ctime" }, negatable = true, description = "Randomize the activity start time. This allows you to upload duplicate activities to Strava, Garmin Connect, and other similar services (default: ${DEFAULT-VALUE})")
+    private boolean randomizeCreationTime = true;
 
     private static final Logger LOGGER = LogManager.getLogger(SwimEditor.class);
 
@@ -41,7 +46,7 @@ public class SwimEditor implements Callable<Integer> {
         }
 
         try {
-            OutputSwimSummary summary = new OutputSwimSummary(swimmingFitFile, editMode);
+            OutputSwimSummary summary = new OutputSwimSummary(swimmingFitFile, editMode, randomizeCreationTime);
             System.out.println();
             System.out.println("============");
             System.out.println("Summary Data");
