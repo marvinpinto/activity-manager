@@ -22,11 +22,14 @@ import ca.disjoint.fitcustomizer.OutputSwimSummary;
 
 @Command(name = "SwimEditor.jar", mixinStandardHelpOptions = true, versionProvider = SwimEditor.PropertiesVersionProvider.class, description = "Edit Garmin swim .fit files to add heartrate data, correct strokes, and more.")
 public class SwimEditor implements Callable<Integer> {
-    @Option(names = { "-v", "--verbose" }, description = "Verbose mode. Helpful for troubleshooting. ")
+    @Option(names = { "-v", "--verbose" }, description = "Verbose mode. Helpful for troubleshooting.")
     private boolean verbose = false;
 
     @Parameters(arity = "1", paramLabel = "FILE", description = "Swimming FIT file to process.")
     private File swimmingFitFile;
+
+    @Option(names = { "-e", "--edit" }, description = "Enable interactive editing (pool length, strokes, etc)")
+    private boolean editMode = false;
 
     private static final Logger LOGGER = LogManager.getLogger("SwimEditor");
 
@@ -37,7 +40,9 @@ public class SwimEditor implements Callable<Integer> {
         }
 
         try {
-            OutputSwimSummary summary = new OutputSwimSummary(swimmingFitFile);
+            OutputSwimSummary summary = new OutputSwimSummary(swimmingFitFile, editMode);
+            System.out.println();
+            System.out.println("---------------------");
             System.out.println("Swimming Summary Data");
             System.out.println("---------------------");
             System.out.println(summary.getSummaryData());
