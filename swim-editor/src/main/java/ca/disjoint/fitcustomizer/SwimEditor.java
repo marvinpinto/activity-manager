@@ -38,6 +38,9 @@ public class SwimEditor implements Callable<Integer> {
 
         try {
             OutputSwimSummary summary = new OutputSwimSummary(swimmingFitFile);
+            System.out.println("Swimming Summary Data");
+            System.out.println("---------------------");
+            System.out.println(summary.getSummaryData());
             LOGGER.log(Level.DEBUG, "Swim summary output complete");
         } catch (Exception ex) {
             String msg = String.format("Error: %s", ex.getMessage());

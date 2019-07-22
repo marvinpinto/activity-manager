@@ -10,6 +10,9 @@ import java.io.IOException;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.Arrays;
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
+import java.time.ZoneId;
 
 import com.garmin.fit.FileIdMesgListener;
 import com.garmin.fit.LapMesgListener;
@@ -23,6 +26,7 @@ import com.garmin.fit.EventMesg;
 import com.garmin.fit.ActivityMesg;
 import com.garmin.fit.LapMesg;
 import com.garmin.fit.LengthMesg;
+import com.garmin.fit.LengthType;
 import com.garmin.fit.SessionMesg;
 import com.garmin.fit.FileIdMesg;
 import com.garmin.fit.Decode;
@@ -37,12 +41,13 @@ import com.garmin.fit.RecordMesg;
 
 public class OutputSwimSummary {
     private static final Logger LOGGER = LogManager.getLogger("SwimEditor");
+    private DataReader reader;
 
     public OutputSwimSummary(File fitFile) throws FileNotFoundException, IOException {
         FileInputStream in;
         Decode decode = new Decode();
         MesgBroadcaster mesgBroadcaster = new MesgBroadcaster(decode);
-        DataReader reader = new DataReader();
+        reader = new DataReader();
 
         LOGGER.log(Level.DEBUG, "Opening input file: " + fitFile.getName());
         in = new FileInputStream(fitFile);
@@ -80,9 +85,23 @@ public class OutputSwimSummary {
         LOGGER.log(Level.DEBUG, "FIT file handle successfully closed");
     }
 
+    public String getSummaryData() {
+        return reader.getSummaryData();
+    }
+
     private static class DataReader
             implements FileIdMesgListener, LapMesgListener, LengthMesgListener, SessionMesgListener,
             ActivityMesgListener, EventMesgListener, DeviceInfoMesgListener, HrMesgListener, RecordMesgListener {
+        private StringBuilder summaryData;
+        private float movingTime = 0;
+
+        public DataReader() {
+            summaryData = new StringBuilder();
+        }
+
+        public String getSummaryData() {
+            return summaryData.toString();
+        }
 
         @Override
         public void onMesg(RecordMesg mesg) {
@@ -154,6 +173,11 @@ public class OutputSwimSummary {
 
         @Override
         public void onMesg(LengthMesg mesg) {
+            // Increment the moving time for ACTIVE swim lengths
+            if (mesg.getLengthType() == LengthType.ACTIVE) {
+                movingTime += mesg.getTotalElapsedTime();
+            }
+
             LOGGER.log(Level.DEBUG, "**************************");
             LOGGER.log(Level.DEBUG, "Length Message:");
             LOGGER.log(Level.DEBUG, "  Index: " + mesg.getMessageIndex());
@@ -161,14 +185,31 @@ public class OutputSwimSummary {
             LOGGER.log(Level.DEBUG, "  Length type: " + mesg.getLengthType());
             LOGGER.log(Level.DEBUG, "  Start time: " + mesg.getStartTime());
             LOGGER.log(Level.DEBUG, "  End time: " + mesg.getTimestamp());
+            LOGGER.log(Level.DEBUG, "  Elapsed time: " + mesg.getTotalElapsedTime());
             LOGGER.log(Level.DEBUG, "  Strokes/min: " + mesg.getAvgSwimmingCadence());
             LOGGER.log(Level.DEBUG, "  Num of strokes: " + mesg.getTotalStrokes());
             LOGGER.log(Level.DEBUG, "  Stroke: " + mesg.getSwimStroke());
             LOGGER.log(Level.DEBUG, "**************************");
         }
 
+        private String convertFloatToStringDate(float value) {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss").withZone(ZoneId.of("UTC"));
+            Instant instant = Instant.ofEpochMilli((long) (value * 1000));
+            return formatter.format(instant);
+        }
+
         @Override
         public void onMesg(SessionMesg mesg) {
+            String elapsedTime = convertFloatToStringDate(mesg.getTotalElapsedTime());
+
+            summaryData.append("Pool length: " + mesg.getPoolLength() + "m" + System.lineSeparator());
+            summaryData.append("Lengths swam: " + mesg.getNumActiveLengths() + System.lineSeparator());
+            summaryData.append("Number of laps: " + mesg.getNumLaps() + System.lineSeparator());
+            summaryData.append(
+                    "Total distance: " + String.format("%.0f", mesg.getTotalDistance()) + "m" + System.lineSeparator());
+            summaryData.append("Elapsed time: " + elapsedTime + System.lineSeparator());
+            summaryData.append("Moving time: " + convertFloatToStringDate(movingTime) + System.lineSeparator());
+
             LOGGER.log(Level.DEBUG, "**************************");
             LOGGER.log(Level.DEBUG, "Session Message:");
             LOGGER.log(Level.DEBUG, "  Index: " + mesg.getMessageIndex());
@@ -191,6 +232,10 @@ public class OutputSwimSummary {
 
         @Override
         public void onMesg(FileIdMesg mesg) {
+            summaryData.append("Device: " + Manufacturer.getStringFromValue(mesg.getManufacturer()) + " "
+                    + GarminProduct.getStringFromValue(mesg.getGarminProduct()) + System.lineSeparator());
+            summaryData.append("Date: " + mesg.getTimeCreated() + System.lineSeparator());
+
             LOGGER.log(Level.DEBUG, "**************************");
             LOGGER.log(Level.DEBUG, "File ID Message:");
             LOGGER.log(Level.DEBUG, "  Creation time: " + mesg.getTimeCreated());
