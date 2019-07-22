@@ -114,6 +114,7 @@ public class OutputSwimSummary {
         private float totalDistance = 0;
         private BufferEncoder updatedFitFile;
         private int lapCtr = 1;
+        private int lengthCtr = 0;
 
         public DataReader() {
             summaryData = new StringBuilder();
@@ -226,8 +227,8 @@ public class OutputSwimSummary {
             LOGGER.log(Level.DEBUG, "  Stroke: " + mesg.getSwimStroke());
             LOGGER.log(Level.DEBUG, "**************************");
 
-            // Increment the lap counter
             lapCtr++;
+            lengthCtr = 0;
 
             float distance = mesg.getTotalDistance();
             if (interactiveEditMode) {
@@ -268,6 +269,8 @@ public class OutputSwimSummary {
             LOGGER.log(Level.DEBUG, "  Stroke: " + mesg.getSwimStroke());
             LOGGER.log(Level.DEBUG, "**************************");
 
+            lengthCtr++;
+
             // Increment the moving time for ACTIVE swim lengths
             if (mesg.getLengthType() == LengthType.ACTIVE) {
                 movingTime += mesg.getTotalElapsedTime();
@@ -276,7 +279,7 @@ public class OutputSwimSummary {
             // Prompt the user to correct the stroke, if desired
             SwimStroke stroke = mesg.getSwimStroke();
             if (stroke != null && interactiveEditMode) {
-                String prompt = String.format("Lap %d: Length #%d (%d strokes, %s)", lapCtr, mesg.getMessageIndex() + 1,
+                String prompt = String.format("Lap %d: Length #%d (%d strokes, %s)", lapCtr, lengthCtr,
                         mesg.getTotalStrokes(), convertFloatToStringDate(mesg.getTotalElapsedTime()));
                 stroke = textIO.newEnumInputReader(SwimStroke.class).withDefaultValue(stroke).read(prompt);
             }
