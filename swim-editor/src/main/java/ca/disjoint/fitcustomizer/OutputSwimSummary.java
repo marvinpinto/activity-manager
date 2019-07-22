@@ -109,16 +109,24 @@ public class OutputSwimSummary {
     private class DataReader implements FileIdMesgListener, LapMesgListener, LengthMesgListener, SessionMesgListener,
             ActivityMesgListener, EventMesgListener, DeviceInfoMesgListener, HrMesgListener, RecordMesgListener {
         private StringBuilder summaryData;
+        private StringBuilder lapSummaryData;
         private float movingTime = 0;
         private float totalDistance = 0;
         private BufferEncoder updatedFitFile;
+        private int lapCtr = 1;
 
         public DataReader() {
             summaryData = new StringBuilder();
+            lapSummaryData = new StringBuilder();
             updatedFitFile = new BufferEncoder(Fit.ProtocolVersion.V2_0);
+            lapSummaryData.append("-----------------" + System.lineSeparator());
+            lapSummaryData.append("Lap & Length Data" + System.lineSeparator());
+            lapSummaryData.append("-----------------" + System.lineSeparator());
         }
 
         public String getSummaryData() {
+            summaryData.append(System.lineSeparator());
+            summaryData.append(lapSummaryData.toString());
             return summaryData.toString();
         }
 
@@ -212,10 +220,14 @@ public class OutputSwimSummary {
             LOGGER.log(Level.DEBUG, "  Event type: " + mesg.getEventType());
             LOGGER.log(Level.DEBUG, "  Start time: " + mesg.getStartTime());
             LOGGER.log(Level.DEBUG, "  End time: " + mesg.getTimestamp());
+            LOGGER.log(Level.DEBUG, "  Elapsed time: " + mesg.getTotalElapsedTime());
             LOGGER.log(Level.DEBUG, "  Pool Lengths: " + mesg.getNumLengths());
             LOGGER.log(Level.DEBUG, "  Distance: " + mesg.getTotalDistance());
             LOGGER.log(Level.DEBUG, "  Stroke: " + mesg.getSwimStroke());
             LOGGER.log(Level.DEBUG, "**************************");
+
+            // Increment the lap counter
+            lapCtr++;
 
             float distance = mesg.getTotalDistance();
             if (interactiveEditMode) {
@@ -225,6 +237,15 @@ public class OutputSwimSummary {
 
             // Increment the total distance
             totalDistance += distance;
+
+            // Append this info to the lap summary data
+            if (mesg.getSwimStroke() != null) {
+                String summary = String.format("Lap %d: %.0fm (%d lengths, %s)", lapCtr - 1, distance,
+                        mesg.getNumLengths(), convertFloatToStringDate(mesg.getTotalElapsedTime()));
+                lapSummaryData.append(summary);
+                lapSummaryData.append(System.lineSeparator());
+                lapSummaryData.append(System.lineSeparator());
+            }
 
             // Construct the Lap message for the updated FIT file
             LapMesg lapMesg = mesg;
@@ -255,8 +276,16 @@ public class OutputSwimSummary {
             // Prompt the user to correct the stroke, if desired
             SwimStroke stroke = mesg.getSwimStroke();
             if (stroke != null && interactiveEditMode) {
-                String prompt = String.format("Stroke detected as \"%s\". What should it be?", stroke);
+                String prompt = String.format("Lap %d: Length #%d (%d strokes, %s)", lapCtr, mesg.getMessageIndex() + 1,
+                        mesg.getTotalStrokes(), convertFloatToStringDate(mesg.getTotalElapsedTime()));
                 stroke = textIO.newEnumInputReader(SwimStroke.class).withDefaultValue(stroke).read(prompt);
+            }
+
+            // Append this info to the lap summary data
+            if (stroke != null) {
+                lapSummaryData.append(String.format("%s: %s (%d strokes)%s", stroke,
+                        convertFloatToStringDate(mesg.getTotalElapsedTime()), mesg.getTotalStrokes(),
+                        System.lineSeparator()));
             }
 
             // Construct the Length message for the updated FIT file
