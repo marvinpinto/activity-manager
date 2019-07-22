@@ -46,7 +46,7 @@ import org.beryx.textio.TextIO;
 import org.beryx.textio.TextIoFactory;
 
 public class OutputSwimSummary {
-    private static final Logger LOGGER = LogManager.getLogger("SwimEditor");
+    private static final Logger LOGGER = LogManager.getLogger(OutputSwimSummary.class);
     private DataReader reader;
     private TextIO textIO;
     private float poolLength;

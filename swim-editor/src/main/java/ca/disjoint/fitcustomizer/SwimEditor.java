@@ -22,7 +22,8 @@ import ca.disjoint.fitcustomizer.OutputSwimSummary;
 
 @Command(name = "SwimEditor.jar", mixinStandardHelpOptions = true, versionProvider = SwimEditor.PropertiesVersionProvider.class, description = "Edit Garmin swim .fit files to add heartrate data, correct strokes, and more.")
 public class SwimEditor implements Callable<Integer> {
-    @Option(names = { "-v", "--verbose" }, description = "Verbose mode. Helpful for troubleshooting.")
+    @Option(names = { "-v",
+            "--verbose" }, description = "Verbose mode. Helpful for troubleshooting. Logs available in \"application.log\"")
     private boolean verbose = false;
 
     @Parameters(arity = "1", paramLabel = "FILE", description = "Swimming FIT file to process.")
@@ -31,11 +32,11 @@ public class SwimEditor implements Callable<Integer> {
     @Option(names = { "-e", "--edit" }, description = "Enable interactive editing (pool length, strokes, etc)")
     private boolean editMode = false;
 
-    private static final Logger LOGGER = LogManager.getLogger("SwimEditor");
+    private static final Logger LOGGER = LogManager.getLogger(SwimEditor.class);
 
     public Integer call() {
         if (verbose) {
-            Configurator.setLevel("SwimEditor", Level.DEBUG);
+            Configurator.setRootLevel(Level.DEBUG);
             LOGGER.log(Level.INFO, "Verbose logging enabled");
         }
 
