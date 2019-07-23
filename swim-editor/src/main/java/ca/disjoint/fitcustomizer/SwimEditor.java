@@ -18,7 +18,8 @@ import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.config.Configurator;
 
-import ca.disjoint.fitcustomizer.OutputSwimSummary;
+import ca.disjoint.fitcustomizer.SwimSummary;
+import ca.disjoint.fitcustomizer.FitWriter;
 
 @Command(name = "SwimEditor.jar", mixinStandardHelpOptions = true, versionProvider = SwimEditor.PropertiesVersionProvider.class, description = "Edit Garmin swim .fit files to add heartrate data, correct strokes, and more.")
 public class SwimEditor implements Callable<Integer> {
@@ -46,15 +47,24 @@ public class SwimEditor implements Callable<Integer> {
         }
 
         try {
-            OutputSwimSummary summary = new OutputSwimSummary(swimmingFitFile, editMode, randomizeCreationTime);
+            SwimSummary summary = new SwimSummary(swimmingFitFile, editMode, randomizeCreationTime);
             System.out.println();
             System.out.println("============");
             System.out.println("Summary Data");
             System.out.println("============");
             System.out.println(summary.getSummaryData());
             LOGGER.log(Level.DEBUG, "Swim summary output complete");
+
+            if (editMode) {
+                FitWriter writer = new FitWriter(summary.getUpdatedFitFile(), swimmingFitFile.getName());
+                String newName = writer.writeFitFile();
+                System.out.println("Updated fit file available at: " + newName);
+            }
+
+            LOGGER.log(Level.DEBUG, "SwimEditor execution complete");
         } catch (Exception ex) {
             String msg = String.format("Error: %s", ex.getMessage());
+            System.err.println(msg);
             LOGGER.log(Level.ERROR, msg);
 
             if (verbose) {

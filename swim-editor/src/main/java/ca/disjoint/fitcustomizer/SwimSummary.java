@@ -47,17 +47,18 @@ import com.garmin.fit.DateTime;
 import org.beryx.textio.TextIO;
 import org.beryx.textio.TextIoFactory;
 
-public class OutputSwimSummary {
-    private static final Logger LOGGER = LogManager.getLogger(OutputSwimSummary.class);
+import ca.disjoint.fitcustomizer.Utils;
+
+public class SwimSummary {
+    private static final Logger LOGGER = LogManager.getLogger(SwimSummary.class);
     private DataReader reader;
     private TextIO textIO;
     private float poolLength;
     private boolean interactiveEditMode;
     private boolean randomizeCreationTime;
 
-    public OutputSwimSummary(File fitFile, boolean editMode, boolean randomizeStart)
+    public SwimSummary(File fitFile, boolean editMode, boolean randomizeStart)
             throws FileNotFoundException, IOException {
-        FileInputStream in;
         Decode decode = new Decode();
         MesgBroadcaster mesgBroadcaster = new MesgBroadcaster(decode);
         textIO = TextIoFactory.getTextIO();
@@ -65,22 +66,12 @@ public class OutputSwimSummary {
         interactiveEditMode = editMode;
         randomizeCreationTime = randomizeStart;
 
-        LOGGER.log(Level.DEBUG, "Opening input file: " + fitFile.getName());
-        in = new FileInputStream(fitFile);
-
-        LOGGER.log(Level.DEBUG, "Checking FIT file integrity");
-        boolean fitIntegrityStatus = decode.checkFileIntegrity((InputStream) in);
-        if (!fitIntegrityStatus) {
-            LOGGER.log(Level.ERROR, "FIT file integrity check failed");
-        }
-        in.close();
+        boolean fitIntegrityStatus = Utils.checkFitFileIntegrity(fitFile);
         if (!fitIntegrityStatus) {
             throw new RuntimeException("FIT file integrity check failed");
         }
-        LOGGER.log(Level.DEBUG, "FIT file \"" + fitFile.getName() + "\" integrity check successfuly");
 
-        // Re-opening file handle as the head was moved in checkFileIntegrity
-        in = new FileInputStream(fitFile);
+        FileInputStream in = new FileInputStream(fitFile);
 
         LOGGER.log(Level.DEBUG, "Adding event listeners");
         mesgBroadcaster.addListener((FileIdMesgListener) reader);
@@ -111,6 +102,10 @@ public class OutputSwimSummary {
         return reader.getSummaryData();
     }
 
+    public BufferEncoder getUpdatedFitFile() {
+        return reader.getUpdatedFitFile();
+    }
+
     private class DataReader implements FileIdMesgListener, LapMesgListener, LengthMesgListener, SessionMesgListener,
             ActivityMesgListener, EventMesgListener, DeviceInfoMesgListener, HrMesgListener, RecordMesgListener {
         private StringBuilder summaryData;
@@ -138,8 +133,8 @@ public class OutputSwimSummary {
             return summaryData.toString();
         }
 
-        public byte[] getUpdatedFitFile() {
-            return updatedFitFile.close();
+        public BufferEncoder getUpdatedFitFile() {
+            return updatedFitFile;
         }
 
         @Override
