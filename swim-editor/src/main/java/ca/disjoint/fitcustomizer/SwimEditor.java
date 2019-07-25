@@ -47,21 +47,7 @@ public class SwimEditor implements Callable<Integer> {
         }
 
         try {
-            SwimSummary summary = new SwimSummary(swimmingFitFile, editMode, randomizeCreationTime);
-            System.out.println();
-            System.out.println("============");
-            System.out.println("Summary Data");
-            System.out.println("============");
-            System.out.println(summary.getSummaryData());
-            LOGGER.log(Level.DEBUG, "Swim summary output complete");
-
-            if (editMode) {
-                FitWriter writer = new FitWriter(summary.getUpdatedFitFile(), swimmingFitFile.getName());
-                String newName = writer.writeFitFile();
-                System.out.println("Updated fit file available at: " + newName);
-            }
-
-            LOGGER.log(Level.DEBUG, "SwimEditor execution complete");
+            SwimSummary summary = new SwimSummary(swimmingFitFile);
         } catch (Exception ex) {
             String msg = String.format("Error: %s", ex.getMessage());
             System.err.println(msg);

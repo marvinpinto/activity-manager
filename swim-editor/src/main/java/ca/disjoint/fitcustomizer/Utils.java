@@ -9,8 +9,16 @@ import java.io.InputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
+import java.time.ZoneId;
+import java.lang.reflect.Method;
 
 import com.garmin.fit.Decode;
+import com.garmin.fit.Mesg;
+import com.garmin.fit.Field;
+
+import org.apache.commons.lang3.text.WordUtils;
 
 public final class Utils {
     private static final Logger LOGGER = LogManager.getLogger(Utils.class);
@@ -30,5 +38,53 @@ public final class Utils {
 
         LOGGER.log(Level.DEBUG, "FIT file integrity check successful");
         return fitIntegrityStatus;
+    }
+
+    public static String convertFloatToStringDate(float value) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss").withZone(ZoneId.of("UTC"));
+        Instant instant = Instant.ofEpochMilli((long) (value * 1000));
+        return formatter.format(instant);
+    }
+
+    public static String titleCaseString(String input) {
+        String op = input;
+        op = op.replaceAll("_", " ");
+        op = WordUtils.capitalizeFully(op);
+        op = op.replaceAll(" ", "");
+        LOGGER.log(Level.TRACE, "Title-cased raw string " + input + " to " + op);
+        return op;
+    }
+
+    public static void logFitMessage(Mesg mesg) {
+        String msgName = mesg.getName();
+        LOGGER.log(Level.TRACE, "Raw message name:" + msgName);
+        Class<?> classType = null;
+
+        try {
+            // Convert it into something we can use to determine the subclass
+            msgName = titleCaseString(msgName) + "Mesg";
+            LOGGER.log(Level.TRACE, "Converted string into Garmin class name: " + msgName);
+            classType = Class.forName("com.garmin.fit." + msgName);
+
+            LOGGER.log(Level.DEBUG, "Message: " + msgName);
+        } catch (ClassNotFoundException ex) {
+            LOGGER.log(Level.TRACE, "Could not determine class type for message: " + msgName);
+        }
+
+        for (Field f : mesg.getFields()) {
+            // Attempt to determine the getter using the raw field name
+            String fn = "get" + titleCaseString(f.getName());
+
+            try {
+                // Attempt to invoke the getter on the casted object
+                Method getter = classType.getDeclaredMethod(fn);
+                Object output = getter.invoke(mesg);
+                LOGGER.log(Level.DEBUG, String.format("    %s: %s", fn, output));
+            } catch (Exception ex) {
+                LOGGER.log(Level.TRACE, "Getter method name " + fn + " for field " + f.getName()
+                        + "appears to be incorrect, moving on.");
+            }
+
+        }
     }
 }
