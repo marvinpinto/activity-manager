@@ -34,7 +34,6 @@ public class GarminSwimActivityTest {
 
     @Test
     public void shouldParseSwimActivityCorrectly() {
-        System.out.println(activity.getActivitySummary());
         assertEquals(Sport.SWIMMING, activity.getSport());
         assertEquals(SubSport.LAP_SWIMMING, activity.getSubSport());
         assertEquals(22.86f, activity.getPoolLength(), 0.000);
