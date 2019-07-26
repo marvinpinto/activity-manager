@@ -19,29 +19,31 @@ import java.util.List;
 import java.util.Random;
 import java.util.ArrayList;
 import java.util.Map;
-import java.util.HashMap;
+import java.util.TreeMap;
+import java.util.Comparator;
 
 import ca.disjoint.fitcustomizer.Utils;
 
-public class GarminActivity {
+public abstract class GarminActivity {
     private static final Logger LOGGER = LogManager.getLogger(GarminActivity.class);
-    private FileIdMesg fileIdMesg;
-    private ActivityMesg activityMesg;
-    private SessionMesg sessionMesg;
-    private float swimmingPoolLength = 0f;
-    private Map<LapMesg, List<LengthMesg>> garminLaps; // one lap has many lengths
-    private List<RecordMesg> recordMessages;
-    private List<EventMesg> eventMessages;
-    private List<DeviceInfoMesg> deviceInfoMessages;
-    private List<HrvMesg> hrvMessages;
+    protected FileIdMesg fileIdMesg;
+    protected ActivityMesg activityMesg;
+    protected SessionMesg sessionMesg;
+    protected Map<LapMesg, List<LengthMesg>> garminLaps; // one lap has many lengths
+    protected List<RecordMesg> recordMessages;
+    protected List<EventMesg> eventMessages;
+    protected List<DeviceInfoMesg> deviceInfoMessages;
+    protected List<HrvMesg> hrvMessages;
 
     public GarminActivity() {
-        garminLaps = new HashMap<LapMesg, List<LengthMesg>>();
+        garminLaps = new TreeMap<LapMesg, List<LengthMesg>>(new LapComparator());
         recordMessages = new ArrayList<RecordMesg>();
         eventMessages = new ArrayList<EventMesg>();
         deviceInfoMessages = new ArrayList<DeviceInfoMesg>();
         hrvMessages = new ArrayList<HrvMesg>();
     }
+
+    abstract String getActivitySummary();
 
     public void setFileIdMesg(FileIdMesg mesg) {
         Utils.logFitMessage(mesg);
@@ -71,10 +73,6 @@ public class GarminActivity {
 
     public ActivityMesg getActivityMesg() {
         return activityMesg;
-    }
-
-    public void updateSwimmingPoolLength(float length) {
-        swimmingPoolLength = length;
     }
 
     public void setSessionMesg(SessionMesg mesg) {
@@ -132,5 +130,12 @@ public class GarminActivity {
 
     public List<HrvMesg> getHrvMessages() {
         return hrvMessages;
+    }
+
+    private class LapComparator implements Comparator<LapMesg> {
+        @Override
+        public int compare(LapMesg l1, LapMesg l2) {
+            return l1.getMessageIndex().compareTo(l2.getMessageIndex());
+        }
     }
 }

@@ -33,17 +33,17 @@ import com.garmin.fit.RecordMesg;
 import ca.disjoint.fitcustomizer.Utils;
 import ca.disjoint.fitcustomizer.GarminActivity;
 
-public class SwimSummary {
-    private static final Logger LOGGER = LogManager.getLogger(SwimSummary.class);
+public class GarminActivityLoader {
+    private static final Logger LOGGER = LogManager.getLogger(GarminActivityLoader.class);
     private DataReader reader;
-    private GarminActivity garminActivity;
     private List<LengthMesg> lengthMessages;
+    private GarminActivity garminActivity;
 
-    public SwimSummary(File fitFile) throws FileNotFoundException, IOException {
+    public GarminActivityLoader(File fitFile, GarminActivity garminActivity) throws FileNotFoundException, IOException {
         Decode decode = new Decode();
         MesgBroadcaster mesgBroadcaster = new MesgBroadcaster(decode);
         reader = new DataReader();
-        garminActivity = new GarminActivity();
+        this.garminActivity = garminActivity;
         lengthMessages = new ArrayList<LengthMesg>();
 
         boolean fitIntegrityStatus = Utils.checkFitFileIntegrity(fitFile);

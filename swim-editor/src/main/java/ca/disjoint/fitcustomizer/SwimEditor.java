@@ -18,8 +18,10 @@ import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.config.Configurator;
 
-import ca.disjoint.fitcustomizer.SwimSummary;
+import ca.disjoint.fitcustomizer.GarminActivityLoader;
 import ca.disjoint.fitcustomizer.FitWriter;
+import ca.disjoint.fitcustomizer.GarminActivity;
+import ca.disjoint.fitcustomizer.GarminSwimActivity;
 
 @Command(name = "SwimEditor.jar", mixinStandardHelpOptions = true, versionProvider = SwimEditor.PropertiesVersionProvider.class, description = "Edit Garmin swim .fit files to add heartrate data, correct strokes, and more.")
 public class SwimEditor implements Callable<Integer> {
@@ -47,7 +49,9 @@ public class SwimEditor implements Callable<Integer> {
         }
 
         try {
-            SwimSummary summary = new SwimSummary(swimmingFitFile);
+            GarminActivity activity = new GarminSwimActivity();
+            GarminActivityLoader gal = new GarminActivityLoader(swimmingFitFile, activity);
+            System.out.println(activity.getActivitySummary());
         } catch (Exception ex) {
             String msg = String.format("Error: %s", ex.getMessage());
             System.err.println(msg);
