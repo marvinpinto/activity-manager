@@ -14,6 +14,8 @@ import com.garmin.fit.RecordMesg;
 import com.garmin.fit.EventMesg;
 import com.garmin.fit.DeviceInfoMesg;
 import com.garmin.fit.HrvMesg;
+import com.garmin.fit.Sport;
+import com.garmin.fit.SubSport;
 
 import java.util.List;
 import java.util.Random;
@@ -43,7 +45,7 @@ public abstract class GarminActivity {
         hrvMessages = new ArrayList<HrvMesg>();
     }
 
-    abstract String getActivitySummary();
+    public abstract String getActivitySummary();
 
     public void setFileIdMesg(FileIdMesg mesg) {
         Utils.logFitMessage(mesg);
@@ -137,5 +139,13 @@ public abstract class GarminActivity {
         public int compare(LapMesg l1, LapMesg l2) {
             return l1.getMessageIndex().compareTo(l2.getMessageIndex());
         }
+    }
+
+    public Sport getSport() {
+        return sessionMesg.getSport();
+    }
+
+    public SubSport getSubSport() {
+        return sessionMesg.getSubSport();
     }
 }

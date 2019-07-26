@@ -26,38 +26,62 @@ public class GarminSwimActivity extends GarminActivity {
         swimmingPoolLength = length;
     }
 
+    public float getPoolLength() {
+        return sessionMesg.getPoolLength();
+    }
+
+    public int getNumActivePoolLengths() {
+        return sessionMesg.getNumActiveLengths();
+    }
+
+    public int getNumTotalPoolLaps() {
+        return sessionMesg.getNumLaps();
+    }
+
+    public float getTotalDistance() {
+        return sessionMesg.getTotalDistance();
+    }
+
+    public float getTotalElapsedTime() {
+        return sessionMesg.getTotalElapsedTime();
+    }
+
+    public float getTotalTimerTime() {
+        return sessionMesg.getTotalTimerTime();
+    }
+
     @Override
     public String getActivitySummary() {
         StringBuilder sb = new StringBuilder();
         Formatter fmt = new Formatter(sb);
 
         // e.g. Sport: Swimming (LapSwimming)
-        fmt.format("%-15s %s (%s)", "Sport:", Utils.titleCaseString(sessionMesg.getSport().toString()),
-                Utils.titleCaseString(sessionMesg.getSubSport().toString()));
+        fmt.format("%-15s %s (%s)", "Sport:", Utils.titleCaseString(getSport().toString()),
+                Utils.titleCaseString(getSubSport().toString()));
         sb.append(System.lineSeparator());
 
         // e.g. Pool length: 15.24m
-        fmt.format("%-15s %s", "Pool length:", sessionMesg.getPoolLength() + "m");
+        fmt.format("%-15s %s", "Pool length:", getPoolLength() + "m");
         sb.append(System.lineSeparator());
 
         // e.g. Total lengths: 68 (10 laps)
-        fmt.format("%-15s %d (%d laps)", "Total lengths:", sessionMesg.getNumActiveLengths(), sessionMesg.getNumLaps());
+        fmt.format("%-15s %d (%d laps)", "Total lengths:", getNumActivePoolLengths(), getNumTotalPoolLaps());
         sb.append(System.lineSeparator());
 
         // e.g. Distance: 1042m
-        fmt.format("%-15s %.0fm", "Distance:", sessionMesg.getTotalDistance(), sessionMesg.getNumLaps());
+        fmt.format("%-15s %.0fm", "Distance:", sessionMesg.getTotalDistance());
         sb.append(System.lineSeparator());
 
-        // e.g. Elapsed time: 00:12:11
-        fmt.format("%-15s %s", "Elapsed time:", Utils.convertFloatToStringDate(sessionMesg.getTotalElapsedTime()));
+        // e.g. Timer time: 00:10:11
+        fmt.format("%-15s %s", "Timer time:", Utils.convertFloatToStringDate(getTotalTimerTime()));
         sb.append(System.lineSeparator());
 
         // // e.g. Moving time: 00:10:11
         // fmt.format("%-15s %s", "Moving time:", Utils.convertFloatToStringDate(sessionMesg.getTotalTimerTime()));
         // sb.append(System.lineSeparator());
 
-        // e.g. Timer time: 00:10:11
-        fmt.format("%-15s %s", "Timer time:", Utils.convertFloatToStringDate(sessionMesg.getTotalTimerTime()));
+        // e.g. Elapsed time: 00:12:11
+        fmt.format("%-15s %s", "Elapsed time:", Utils.convertFloatToStringDate(getTotalElapsedTime()));
         sb.append(System.lineSeparator());
 
         // Append the Lap Summary data
