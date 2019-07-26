@@ -20,25 +20,24 @@ import com.garmin.fit.SubSport;
 import java.util.List;
 import java.util.Random;
 import java.util.ArrayList;
-import java.util.Map;
-import java.util.TreeMap;
 import java.util.Comparator;
 
 import ca.disjoint.fitcustomizer.Utils;
+import ca.disjoint.fitcustomizer.GarminLap;
 
 public abstract class GarminActivity {
     private static final Logger LOGGER = LogManager.getLogger(GarminActivity.class);
     protected FileIdMesg fileIdMesg;
     protected ActivityMesg activityMesg;
     protected SessionMesg sessionMesg;
-    protected Map<LapMesg, List<LengthMesg>> garminLaps; // one lap has many lengths
+    protected List<GarminLap> garminLaps; // one lap has many lengths
     protected List<RecordMesg> recordMessages;
     protected List<EventMesg> eventMessages;
     protected List<DeviceInfoMesg> deviceInfoMessages;
     protected List<HrvMesg> hrvMessages;
 
     public GarminActivity() {
-        garminLaps = new TreeMap<LapMesg, List<LengthMesg>>(new LapComparator());
+        garminLaps = new ArrayList<GarminLap>();
         recordMessages = new ArrayList<RecordMesg>();
         eventMessages = new ArrayList<EventMesg>();
         deviceInfoMessages = new ArrayList<DeviceInfoMesg>();
@@ -91,10 +90,10 @@ public abstract class GarminActivity {
         for (LengthMesg m : lengthMessages) {
             Utils.logFitMessage(m);
         }
-        garminLaps.put(lapMesg, lengthMessages);
+        garminLaps.add(new GarminLap(lapMesg, lengthMessages));
     }
 
-    public Map<LapMesg, List<LengthMesg>> getGarminLaps() {
+    public List<GarminLap> getGarminLaps() {
         return garminLaps;
     }
 
@@ -132,13 +131,6 @@ public abstract class GarminActivity {
 
     public List<HrvMesg> getHrvMessages() {
         return hrvMessages;
-    }
-
-    private class LapComparator implements Comparator<LapMesg> {
-        @Override
-        public int compare(LapMesg l1, LapMesg l2) {
-            return l1.getMessageIndex().compareTo(l2.getMessageIndex());
-        }
     }
 
     public Sport getSport() {

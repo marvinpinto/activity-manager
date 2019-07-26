@@ -1,6 +1,5 @@
 package ca.disjoint.fitcustomizer;
 
-import java.util.Map;
 import java.util.List;
 import java.util.Iterator;
 import java.util.Formatter;
@@ -14,6 +13,7 @@ import com.garmin.fit.LapMesg;
 
 import ca.disjoint.fitcustomizer.GarminActivity;
 import ca.disjoint.fitcustomizer.GarminSwimStroke;
+import ca.disjoint.fitcustomizer.GarminLap;
 
 public class GarminSwimActivity extends GarminActivity {
     private static final Logger LOGGER = LogManager.getLogger(GarminSwimActivity.class);
@@ -90,35 +90,42 @@ public class GarminSwimActivity extends GarminActivity {
         return sb.toString();
     }
 
+    public String getLapSummary(int lapIndex) {
+        StringBuilder sb = new StringBuilder();
+        GarminLap garminLap = garminLaps.get(lapIndex);
+        LapMesg lap = garminLap.getLapMessage();
+        List<LengthMesg> lengths = garminLap.getLengthMessages();
+
+        // Ignore any "rest" laps
+        if (lap.getSwimStroke() == null) {
+            return "";
+        }
+
+        // Summary portion
+        int internalLapIndex = lap.getMessageIndex() + 1;
+        Formatter fmt = new Formatter(sb);
+        fmt.format("%-8s ", "[Lap " + internalLapIndex + "]");
+        fmt.format("%10s ", lap.getNumActiveLengths() + " lengths");
+        fmt.format("%-14s ", "(" + lap.getSwimStroke() + ")");
+        fmt.format("%8s: ", Utils.convertFloatToStringDate(lap.getTotalTimerTime()));
+
+        // Stroke list
+        for (Iterator i = lengths.iterator(); i.hasNext();) {
+            LengthMesg len = (LengthMesg) i.next();
+            sb.append(GarminSwimStroke.getByValue(len.getSwimStroke().getValue()));
+            if (i.hasNext()) {
+                sb.append(",");
+            }
+        }
+
+        return sb.toString();
+    }
+
     public String getLapSummary() {
         StringBuilder sb = new StringBuilder();
 
-        for (Map.Entry<LapMesg, List<LengthMesg>> laps : garminLaps.entrySet()) {
-            LapMesg lap = laps.getKey();
-            List<LengthMesg> lengths = laps.getValue();
-
-            // Filter out any "rest" laps from the activity summary
-            if (lap.getSwimStroke() == null) {
-                continue;
-            }
-
-            // Summary portion
-            int lapIndex = lap.getMessageIndex() + 1;
-            Formatter fmt = new Formatter(sb);
-            fmt.format("%-8s ", "[Lap " + lapIndex + "]");
-            fmt.format("%10s ", lap.getNumActiveLengths() + " lengths");
-            fmt.format("%-14s ", "(" + lap.getSwimStroke() + ")");
-            fmt.format("%8s: ", Utils.convertFloatToStringDate(lap.getTotalTimerTime()));
-
-            // Stroke list
-            for (Iterator i = lengths.iterator(); i.hasNext();) {
-                LengthMesg len = (LengthMesg) i.next();
-                sb.append(GarminSwimStroke.getByValue(len.getSwimStroke().getValue()));
-                if (i.hasNext()) {
-                    sb.append(",");
-                }
-            }
-
+        for (int i = 0; i < garminLaps.size(); i++) {
+            sb.append(getLapSummary(i));
             sb.append(System.lineSeparator());
         }
 

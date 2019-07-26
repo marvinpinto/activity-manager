@@ -43,5 +43,6 @@ public class GarminSwimActivityTest {
         assertEquals(137.17f, activity.getTotalDistance(), 0.01);
         assertEquals(294.146f, activity.getTotalElapsedTime(), 0.00);
         assertEquals(289.483f, activity.getTotalTimerTime(), 0.00);
+        assertEquals("[Lap 1]   6 lengths (BREASTSTROKE) 00:04:40: BR,BR,BR,BR,BR,BR", activity.getLapSummary(0));
     }
 }
