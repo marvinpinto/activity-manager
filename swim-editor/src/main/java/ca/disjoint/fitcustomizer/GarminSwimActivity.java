@@ -26,7 +26,47 @@ public class GarminSwimActivity extends GarminActivity {
         swimmingPoolLength = length;
     }
 
+    @Override
     public String getActivitySummary() {
+        StringBuilder sb = new StringBuilder();
+        Formatter fmt = new Formatter(sb);
+
+        // e.g. Sport: Swimming (LapSwimming)
+        fmt.format("%-15s %s (%s)", "Sport:", Utils.titleCaseString(sessionMesg.getSport().toString()),
+                Utils.titleCaseString(sessionMesg.getSubSport().toString()));
+        sb.append(System.lineSeparator());
+
+        // e.g. Pool length: 15.24m
+        fmt.format("%-15s %s", "Pool length:", sessionMesg.getPoolLength() + "m");
+        sb.append(System.lineSeparator());
+
+        // e.g. Total lengths: 68 (10 laps)
+        fmt.format("%-15s %d (%d laps)", "Total lengths:", sessionMesg.getNumActiveLengths(), sessionMesg.getNumLaps());
+        sb.append(System.lineSeparator());
+
+        // e.g. Distance: 1042m
+        fmt.format("%-15s %.0fm", "Distance:", sessionMesg.getTotalDistance(), sessionMesg.getNumLaps());
+        sb.append(System.lineSeparator());
+
+        // e.g. Elapsed time: 00:12:11
+        fmt.format("%-15s %s", "Elapsed time:", Utils.convertFloatToStringDate(sessionMesg.getTotalElapsedTime()));
+        sb.append(System.lineSeparator());
+
+        // // e.g. Moving time: 00:10:11
+        // fmt.format("%-15s %s", "Moving time:", Utils.convertFloatToStringDate(sessionMesg.getTotalTimerTime()));
+        // sb.append(System.lineSeparator());
+
+        // e.g. Timer time: 00:10:11
+        fmt.format("%-15s %s", "Timer time:", Utils.convertFloatToStringDate(sessionMesg.getTotalTimerTime()));
+        sb.append(System.lineSeparator());
+
+        // Append the Lap Summary data
+        sb.append(System.lineSeparator());
+        sb.append(getLapSummary());
+        return sb.toString();
+    }
+
+    public String getLapSummary() {
         StringBuilder sb = new StringBuilder();
 
         for (Map.Entry<LapMesg, List<LengthMesg>> laps : garminLaps.entrySet()) {
@@ -60,5 +100,4 @@ public class GarminSwimActivity extends GarminActivity {
 
         return sb.toString();
     }
-
 }
