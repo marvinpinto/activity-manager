@@ -125,8 +125,11 @@ public class GarminSwimActivity extends GarminActivity {
         StringBuilder sb = new StringBuilder();
 
         for (int i = 0; i < garminLaps.size(); i++) {
-            sb.append(getLapSummary(i));
-            sb.append(System.lineSeparator());
+            String summary = getLapSummary(i);
+            sb.append(summary);
+            if (!summary.isEmpty()) {
+                sb.append(System.lineSeparator());
+            }
         }
 
         return sb.toString();
