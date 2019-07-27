@@ -51,6 +51,11 @@ public class SwimEditor implements Callable<Integer> {
         try {
             GarminActivity activity = new GarminSwimActivity();
             GarminActivityLoader gal = new GarminActivityLoader(swimmingFitFile, activity);
+
+            if (randomizeCreationTime) {
+                activity.randomizeCreationTime();
+            }
+
             System.out.println(activity.getActivitySummary());
         } catch (Exception ex) {
             String msg = String.format("Error: %s", ex.getMessage());

@@ -10,6 +10,7 @@ import org.apache.logging.log4j.LogManager;
 
 import com.garmin.fit.LengthMesg;
 import com.garmin.fit.LapMesg;
+import com.garmin.fit.DateTime;
 
 import ca.disjoint.fitcustomizer.GarminActivity;
 import ca.disjoint.fitcustomizer.GarminSwimStroke;
@@ -58,6 +59,10 @@ public class GarminSwimActivity extends GarminActivity {
         // e.g. Sport: Swimming (LapSwimming)
         fmt.format("%-15s %s (%s)", "Sport:", Utils.titleCaseString(getSport().toString()),
                 Utils.titleCaseString(getSubSport().toString()));
+        sb.append(System.lineSeparator());
+
+        // e.g. Date: Fri Jun 21 07:01:37 EDT 2019
+        fmt.format("%-15s %s", "Date:", getCreationTime());
         sb.append(System.lineSeparator());
 
         // e.g. Pool length: 15.24m

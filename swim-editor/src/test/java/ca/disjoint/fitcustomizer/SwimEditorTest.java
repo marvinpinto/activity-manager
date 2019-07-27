@@ -1,11 +1,17 @@
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.junit.Assert.assertThat;
 import org.junit.Test;
 import org.junit.Before;
 import org.junit.After;
 import org.junit.Rule;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.equalTo;
 
 import java.net.URL;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 
 import org.junit.contrib.java.lang.system.ExpectedSystemExit;
 import org.junit.contrib.java.lang.system.SystemErrRule;
@@ -100,6 +106,34 @@ public class SwimEditorTest {
         });
 
         String[] args = { "--version" };
+        inst.main(args);
+    }
+
+    @Test
+    public void shouldRandomizeCreationTimeByDefault() {
+        String actualCreationTime = "Wed Jul 04 07:40:39 EDT 2018";
+
+        exit.expectSystemExitWithStatus(0);
+        exit.checkAssertionAfterwards(new Assertion() {
+            public void checkAssertion() {
+                Pattern pattern = Pattern.compile(".*Date:(.*)\\n.*");
+                Matcher matcher = pattern.matcher(systemOutRule.getLog());
+
+                if (!matcher.find()) {
+                    fail("Output did not appear to contain the creation date. Output: " + systemOutRule.getLog());
+                }
+
+                String capturedDate = matcher.group(1).trim();
+                if (!capturedDate.startsWith("Wed Jul 04 07:")) {
+                    fail("Creation time appears to be invalid: " + capturedDate);
+                }
+
+                assertThat(capturedDate, not(equalTo(actualCreationTime)));
+            }
+        });
+
+        URL url = this.getClass().getResource("/basic-swim.fit");
+        String[] args = { url.getFile() };
         inst.main(args);
     }
 }

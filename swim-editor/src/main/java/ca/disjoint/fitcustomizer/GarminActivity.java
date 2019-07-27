@@ -63,6 +63,10 @@ public abstract class GarminActivity {
         fileIdMesg.setTimeCreated(creationTime);
     }
 
+    public DateTime getCreationTime() {
+        return fileIdMesg.getTimeCreated();
+    }
+
     public FileIdMesg getFileIdMesg() {
         return fileIdMesg;
     }

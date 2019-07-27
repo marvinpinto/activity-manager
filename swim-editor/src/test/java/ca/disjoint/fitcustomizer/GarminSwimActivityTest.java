@@ -1,4 +1,5 @@
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import org.junit.Test;
 import org.junit.Before;
@@ -81,5 +82,16 @@ public class GarminSwimActivityTest {
                 activity.getLapSummary(0));
         assertEquals("[Lap 7]   8 lengths (MIXED)        00:04:16: BR,BR,BR,BR,BR,BR,FR,BR", activity.getLapSummary(6));
         assertEquals("", activity.getLapSummary(7));
+    }
+
+    @Test
+    public void shouldRandomizeCreationTime() {
+        setUpBasicSwimData();
+        long oldTimestamp = activity.getCreationTime().getTimestamp();
+        activity.randomizeCreationTime();
+        long newTimestamp = activity.getCreationTime().getTimestamp();
+        String testStr = String.format("newTimestamp %d is out of range of oldTimestamp %d", newTimestamp,
+                oldTimestamp);
+        assertTrue(testStr, newTimestamp < oldTimestamp && newTimestamp >= (oldTimestamp - 100));
     }
 }
