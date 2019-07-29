@@ -15,6 +15,7 @@ from doing so.
 - `mvn formatter:format`
 - `mvn test`
 - `mvn clean verify`
+- `mvn -Dmaven.test.skip=true clean package`
 
 ### Tools
 - View the contents of a file within the jar using: `unzip -q -c myarchive.jar path/to/file`
