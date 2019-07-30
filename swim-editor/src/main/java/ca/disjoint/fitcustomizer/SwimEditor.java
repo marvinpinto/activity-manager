@@ -18,6 +18,18 @@ import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.config.Configurator;
 
+import org.jline.terminal.Terminal;
+import org.jline.terminal.TerminalBuilder;
+import org.jline.reader.LineReader;
+import org.jline.reader.LineReaderBuilder;
+import org.jline.reader.UserInterruptException;
+import org.jline.reader.EndOfFileException;
+import org.jline.reader.MaskingCallback;
+import org.jline.reader.ParsedLine;
+import org.jline.utils.InfoCmp.Capability;
+import org.jline.utils.AttributedStringBuilder;
+import org.jline.utils.AttributedStyle;
+
 import ca.disjoint.fitcustomizer.GarminActivityLoader;
 import ca.disjoint.fitcustomizer.FitWriter;
 import ca.disjoint.fitcustomizer.GarminActivity;
@@ -42,6 +54,8 @@ public class SwimEditor implements Callable<Integer> {
 
     private static final Logger LOGGER = LogManager.getLogger(SwimEditor.class);
 
+    private Terminal terminal;
+
     public Integer call() {
         if (verbose) {
             Configurator.setRootLevel(Level.DEBUG);
@@ -49,6 +63,10 @@ public class SwimEditor implements Callable<Integer> {
         }
 
         try {
+            float poolLength = 0f;
+
+            terminal = TerminalBuilder.builder().system(true).signalHandler(Terminal.SignalHandler.SIG_IGN).build();
+
             GarminActivity activity = new GarminSwimActivity();
             GarminActivityLoader gal = new GarminActivityLoader(swimmingFitFile, activity);
 
@@ -57,9 +75,19 @@ public class SwimEditor implements Callable<Integer> {
             }
 
             System.out.println(activity.getActivitySummary());
+
+            if (editMode) {
+                poolLength = readPoolLength();
+                LOGGER.log(Level.DEBUG, "User entered pool length: " + poolLength);
+                terminal.puts(Capability.clear_screen);
+                terminal.flush();
+            }
         } catch (Exception ex) {
+            String exceptionMsg = ex.getMessage();
             String msg = String.format("Error: %s", ex.getMessage());
-            System.err.println(msg);
+            if (exceptionMsg != "") {
+                System.err.println(msg);
+            }
             LOGGER.log(Level.ERROR, msg);
 
             if (verbose) {
@@ -74,6 +102,45 @@ public class SwimEditor implements Callable<Integer> {
     public static void main(String[] args) {
         int exitCode = new CommandLine(new SwimEditor()).execute(args);
         System.exit(exitCode);
+    }
+
+    private float readPoolLength() {
+        LineReader reader = LineReaderBuilder.builder().build();
+
+        String prompt = new AttributedStringBuilder().style(AttributedStyle.BOLD.foreground(AttributedStyle.GREEN))
+                .append("Pool length (meters):").style(AttributedStyle.DEFAULT.foreground(AttributedStyle.GREEN))
+                .append(System.lineSeparator() + "value> ").toAnsi();
+
+        String userInput = "";
+        String promptRightSide = null;
+        float currentPoolLength = 15.24f;
+        float poolLength = 0f;
+
+        while (poolLength <= 0f) {
+            String line = null;
+            try {
+                terminal.puts(Capability.clear_screen);
+                terminal.flush();
+                line = reader.readLine(prompt, promptRightSide, (MaskingCallback) null,
+                        Float.toString(currentPoolLength));
+
+                ParsedLine pl = reader.getParser().parse(line, 0);
+                userInput = pl.words().get(0);
+                poolLength = Float.parseFloat(userInput);
+
+            } catch (UserInterruptException e) {
+                throw new RuntimeException("");
+            } catch (EndOfFileException e) {
+                throw new RuntimeException("");
+            } catch (NumberFormatException e) {
+                promptRightSide = new AttributedStringBuilder()
+                        .style(AttributedStyle.BOLD.foreground(AttributedStyle.RED)).append("ERROR: ")
+                        .style(AttributedStyle.BOLD).append("\"" + userInput + "\" is not a valid pool length")
+                        .toAnsi();
+            }
+        }
+
+        return poolLength;
     }
 
     static class PropertiesVersionProvider implements IVersionProvider {
