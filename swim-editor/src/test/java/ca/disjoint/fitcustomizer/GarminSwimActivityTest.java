@@ -94,4 +94,26 @@ public class GarminSwimActivityTest {
                 oldTimestamp);
         assertTrue(testStr, newTimestamp < oldTimestamp && newTimestamp >= (oldTimestamp - 100));
     }
+
+    @Test
+    public void shouldUpdatePoolLength() {
+        setUpMultipleLapSwimData();
+        assertEquals(Sport.SWIMMING, activity.getSport());
+        assertEquals(SubSport.LAP_SWIMMING, activity.getSubSport());
+        assertEquals(17.0f, activity.getPoolLength(), 0.000);
+        assertEquals(74, activity.getNumActivePoolLengths());
+        assertEquals(14, activity.getNumTotalPoolLaps());
+        assertEquals(1258.0f, activity.getTotalDistance(), 0.00);
+        assertEquals(2773.603f, activity.getTotalElapsedTime(), 0.001);
+        assertEquals(2769.107f, activity.getTotalTimerTime(), 0.001);
+        assertEquals("[Lap 1]  10 lengths (BREASTSTROKE) 00:05:51: BR,BR,BR,BR,BR,BR,BR,BR,BR,BR",
+                activity.getLapSummary(0));
+        assertEquals("[Lap 7]   8 lengths (MIXED)        00:04:16: BR,BR,BR,BR,BR,BR,FR,BR", activity.getLapSummary(6));
+        assertEquals("", activity.getLapSummary(7));
+
+        // Update the pool length to 10m
+        activity.updateSwimmingPoolLength(10f);
+        assertEquals(10.0f, activity.getPoolLength(), 0.000);
+        assertEquals(740.0f, activity.getTotalDistance(), 0.00);
+    }
 }

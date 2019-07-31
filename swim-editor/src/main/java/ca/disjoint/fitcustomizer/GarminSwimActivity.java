@@ -11,6 +11,7 @@ import org.apache.logging.log4j.LogManager;
 import com.garmin.fit.LengthMesg;
 import com.garmin.fit.LapMesg;
 import com.garmin.fit.DateTime;
+import com.garmin.fit.LengthType;
 
 import ca.disjoint.fitcustomizer.GarminActivity;
 import ca.disjoint.fitcustomizer.GarminSwimStroke;
@@ -18,13 +19,8 @@ import ca.disjoint.fitcustomizer.GarminLap;
 
 public class GarminSwimActivity extends GarminActivity {
     private static final Logger LOGGER = LogManager.getLogger(GarminSwimActivity.class);
-    private float swimmingPoolLength = 0f;
 
     public GarminSwimActivity() {
-    }
-
-    public void updateSwimmingPoolLength(float length) {
-        swimmingPoolLength = length;
     }
 
     public float getPoolLength() {
@@ -49,6 +45,74 @@ public class GarminSwimActivity extends GarminActivity {
 
     public float getTotalTimerTime() {
         return sessionMesg.getTotalTimerTime();
+    }
+
+    public void updateSwimmingPoolLength(float newPoolLength) {
+        LOGGER.log(Level.DEBUG, "Updating pool length to: " + newPoolLength);
+        float sessionTotalDistance = 0f;
+        float sessionTotalSpeed = 0f;
+        float sessionMaxSpeed = 0f;
+
+        for (GarminLap garminLap : garminLaps) {
+            float lapMaxSpeed = 0f;
+            float lapTotalSpeed = 0f;
+            LapMesg lap = garminLap.getLapMessage();
+
+            for (LengthMesg length : garminLap.getLengthMessages()) {
+                // Ignore any non-active lengths
+                if (length.getLengthType() != LengthType.ACTIVE) {
+                    continue;
+                }
+
+                // Update the avg speed to reflect the new pool length
+                float avgSpeed = newPoolLength / length.getTotalTimerTime();
+                length.setAvgSpeed(avgSpeed);
+
+                // Update the lap max speed, if applicable
+                if (avgSpeed > lapMaxSpeed) {
+                    lapMaxSpeed = avgSpeed;
+                }
+
+                // Update the session max speed, if applicable
+                if (avgSpeed > sessionMaxSpeed) {
+                    sessionMaxSpeed = avgSpeed;
+                }
+
+                // Increment the lap total speed
+                lapTotalSpeed += avgSpeed;
+            }
+
+            // Calculate the avg/max speed metrics for this lap
+            float lapAvgSpeed = lapTotalSpeed / lap.getNumActiveLengths();
+            lap.setAvgSpeed(lapAvgSpeed);
+            lap.setMaxSpeed(lapMaxSpeed);
+            lap.setEnhancedAvgSpeed(lapAvgSpeed);
+            lap.setEnhancedMaxSpeed(lapMaxSpeed);
+
+            // Set the total lap distance
+            float lapTotalDistance = lap.getNumActiveLengths() * newPoolLength;
+            lap.setTotalDistance(lapTotalDistance);
+
+            // Increment the session distance
+            sessionTotalDistance += lapTotalDistance;
+
+            // Increment the session speed
+            sessionTotalSpeed += lapAvgSpeed;
+
+            // Set the lap avg stroke distance
+            float lapAvgStrokeDistance = lap.getTotalDistance() / lap.getTotalCycles();
+            lap.setAvgStrokeDistance(lapAvgStrokeDistance);
+        }
+
+        // Update the session metrics to account for the new pool length
+        sessionMesg.setTotalDistance(sessionTotalDistance);
+        float sessionAvgSpeed = sessionTotalSpeed / sessionMesg.getNumLaps();
+        sessionMesg.setAvgSpeed(sessionAvgSpeed);
+        sessionMesg.setMaxSpeed(sessionMaxSpeed);
+        sessionMesg.setEnhancedAvgSpeed(sessionAvgSpeed);
+        sessionMesg.setEnhancedMaxSpeed(sessionMaxSpeed);
+        sessionMesg.setAvgStrokeDistance(sessionMesg.getTotalDistance() / sessionMesg.getTotalCycles());
+        sessionMesg.setPoolLength(newPoolLength);
     }
 
     @Override

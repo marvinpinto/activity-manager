@@ -32,7 +32,6 @@ import org.jline.utils.AttributedStyle;
 
 import ca.disjoint.fitcustomizer.GarminActivityLoader;
 import ca.disjoint.fitcustomizer.FitWriter;
-import ca.disjoint.fitcustomizer.GarminActivity;
 import ca.disjoint.fitcustomizer.GarminSwimActivity;
 
 @Command(name = "SwimEditor.jar", mixinStandardHelpOptions = true, versionProvider = SwimEditor.PropertiesVersionProvider.class, description = "Edit Garmin swim .fit files to add heartrate data, correct strokes, and more.")
@@ -67,21 +66,22 @@ public class SwimEditor implements Callable<Integer> {
 
             terminal = TerminalBuilder.builder().system(true).signalHandler(Terminal.SignalHandler.SIG_IGN).build();
 
-            GarminActivity activity = new GarminSwimActivity();
+            GarminSwimActivity activity = new GarminSwimActivity();
             GarminActivityLoader gal = new GarminActivityLoader(swimmingFitFile, activity);
 
             if (randomizeCreationTime) {
                 activity.randomizeCreationTime();
             }
 
-            System.out.println(activity.getActivitySummary());
-
             if (editMode) {
                 poolLength = readPoolLength();
                 LOGGER.log(Level.DEBUG, "User entered pool length: " + poolLength);
+                activity.updateSwimmingPoolLength(poolLength);
                 terminal.puts(Capability.clear_screen);
                 terminal.flush();
             }
+
+            System.out.println(activity.getActivitySummary());
         } catch (Exception ex) {
             String exceptionMsg = ex.getMessage();
             String msg = String.format("Error: %s", ex.getMessage());
