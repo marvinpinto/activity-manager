@@ -47,6 +47,14 @@ public class GarminSwimActivity extends GarminActivity {
         return sessionMesg.getTotalTimerTime();
     }
 
+    public float getAvgSpeed() {
+        return sessionMesg.getAvgSpeed();
+    }
+
+    public float getMaxSpeed() {
+        return sessionMesg.getMaxSpeed();
+    }
+
     public void updateSwimmingPoolLength(float newPoolLength) {
         LOGGER.log(Level.DEBUG, "Updating pool length to: " + newPoolLength);
         float sessionTotalDistance = 0f;
@@ -57,6 +65,11 @@ public class GarminSwimActivity extends GarminActivity {
             float lapMaxSpeed = 0f;
             float lapTotalSpeed = 0f;
             LapMesg lap = garminLap.getLapMessage();
+
+            // Ignore any "rest" laps
+            if (lap.getSwimStroke() == null) {
+                continue;
+            }
 
             for (LengthMesg length : garminLap.getLengthMessages()) {
                 // Ignore any non-active lengths
@@ -97,6 +110,7 @@ public class GarminSwimActivity extends GarminActivity {
             sessionTotalDistance += lapTotalDistance;
 
             // Increment the session speed
+            LOGGER.log(Level.DEBUG, "Lap avg speed: " + lapAvgSpeed);
             sessionTotalSpeed += lapAvgSpeed;
 
             // Set the lap avg stroke distance
@@ -106,7 +120,9 @@ public class GarminSwimActivity extends GarminActivity {
 
         // Update the session metrics to account for the new pool length
         sessionMesg.setTotalDistance(sessionTotalDistance);
+        LOGGER.log(Level.DEBUG, "Session total speed: " + sessionTotalSpeed + ", laps: " + sessionMesg.getNumLaps());
         float sessionAvgSpeed = sessionTotalSpeed / sessionMesg.getNumLaps();
+        LOGGER.log(Level.DEBUG, "Session avg speed: " + sessionAvgSpeed);
         sessionMesg.setAvgSpeed(sessionAvgSpeed);
         sessionMesg.setMaxSpeed(sessionMaxSpeed);
         sessionMesg.setEnhancedAvgSpeed(sessionAvgSpeed);
@@ -153,6 +169,14 @@ public class GarminSwimActivity extends GarminActivity {
         fmt.format("%-15s %s", "Elapsed time:", Utils.convertFloatToStringDate(getTotalElapsedTime()));
         sb.append(System.lineSeparator());
 
+        // e.g. Avg pace: 04:41/100m
+        fmt.format("%-15s %s/100m", "Avg pace:", Utils.convertFloatToStringDate(100 / getAvgSpeed()));
+        sb.append(System.lineSeparator());
+
+        // e.g. Best pace: 04:41/100m
+        fmt.format("%-15s %s/100m", "Best pace:", Utils.convertFloatToStringDate(100 / getMaxSpeed()));
+        sb.append(System.lineSeparator());
+
         // Append the Lap Summary data
         sb.append(System.lineSeparator());
         sb.append(getLapSummary());
@@ -174,11 +198,14 @@ public class GarminSwimActivity extends GarminActivity {
         int internalLapIndex = lap.getMessageIndex() + 1;
         Formatter fmt = new Formatter(sb);
         fmt.format("%-8s ", "[Lap " + internalLapIndex + "]");
-        fmt.format("%10s ", lap.getNumActiveLengths() + " lengths");
+        fmt.format("%-10s ", lap.getNumActiveLengths() + " lengths");
         fmt.format("%-14s ", "(" + lap.getSwimStroke() + ")");
-        fmt.format("%8s: ", Utils.convertFloatToStringDate(lap.getTotalTimerTime()));
+        fmt.format("%s ", Utils.convertFloatToStringDate(lap.getTotalTimerTime()));
+        fmt.format("(avg %s/100m, best %s/100m)%n", Utils.convertFloatToStringDate(100 / lap.getAvgSpeed()),
+                Utils.convertFloatToStringDate(100 / lap.getMaxSpeed()));
 
         // Stroke list
+        fmt.format("%-8s Strokes: ", "");
         for (Iterator i = lengths.iterator(); i.hasNext();) {
             LengthMesg len = (LengthMesg) i.next();
             sb.append(GarminSwimStroke.getByValue(len.getSwimStroke().getValue()));
@@ -197,6 +224,7 @@ public class GarminSwimActivity extends GarminActivity {
             String summary = getLapSummary(i);
             sb.append(summary);
             if (!summary.isEmpty()) {
+                sb.append(System.lineSeparator());
                 sb.append(System.lineSeparator());
             }
         }

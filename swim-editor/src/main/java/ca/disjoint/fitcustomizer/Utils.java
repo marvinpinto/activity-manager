@@ -43,7 +43,13 @@ public final class Utils {
     public static String convertFloatToStringDate(float value) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss").withZone(ZoneId.of("UTC"));
         Instant instant = Instant.ofEpochMilli((long) (value * 1000));
-        return formatter.format(instant);
+        String retval = formatter.format(instant);
+
+        // Strip any (leading) empty hour values
+        if (retval.startsWith("00:")) {
+            retval = retval.substring(3);
+        }
+        return retval;
     }
 
     public static String titleCaseString(String input) {

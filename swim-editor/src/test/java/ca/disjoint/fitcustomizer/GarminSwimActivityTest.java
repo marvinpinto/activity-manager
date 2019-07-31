@@ -64,7 +64,10 @@ public class GarminSwimActivityTest {
         assertEquals(137.17f, activity.getTotalDistance(), 0.01);
         assertEquals(294.146f, activity.getTotalElapsedTime(), 0.00);
         assertEquals(289.483f, activity.getTotalTimerTime(), 0.00);
-        assertEquals("[Lap 1]   6 lengths (BREASTSTROKE) 00:04:40: BR,BR,BR,BR,BR,BR", activity.getLapSummary(0));
+        assertEquals("[Lap 1]  6 lengths  (BREASTSTROKE) 04:40 (avg 03:24/100m, best 02:49/100m)"
+                + System.lineSeparator() + "         Strokes: BR,BR,BR,BR,BR,BR", activity.getLapSummary(0));
+        assertEquals(0.488f, activity.getAvgSpeed(), 0.001);
+        assertEquals(0.589f, activity.getMaxSpeed(), 0.001);
     }
 
     @Test
@@ -78,10 +81,14 @@ public class GarminSwimActivityTest {
         assertEquals(1258.0f, activity.getTotalDistance(), 0.00);
         assertEquals(2773.603f, activity.getTotalElapsedTime(), 0.001);
         assertEquals(2769.107f, activity.getTotalTimerTime(), 0.001);
-        assertEquals("[Lap 1]  10 lengths (BREASTSTROKE) 00:05:51: BR,BR,BR,BR,BR,BR,BR,BR,BR,BR",
+        assertEquals("[Lap 1]  10 lengths (BREASTSTROKE) 05:51 (avg 03:27/100m, best 03:05/100m)"
+                + System.lineSeparator() + "         Strokes: BR,BR,BR,BR,BR,BR,BR,BR,BR,BR",
                 activity.getLapSummary(0));
-        assertEquals("[Lap 7]   8 lengths (MIXED)        00:04:16: BR,BR,BR,BR,BR,BR,FR,BR", activity.getLapSummary(6));
+        assertEquals("[Lap 7]  8 lengths  (MIXED)        04:16 (avg 03:09/100m, best 02:11/100m)"
+                + System.lineSeparator() + "         Strokes: BR,BR,BR,BR,BR,BR,FR,BR", activity.getLapSummary(6));
         assertEquals("", activity.getLapSummary(7));
+        assertEquals(0.513f, activity.getAvgSpeed(), 0.001);
+        assertEquals(0.760f, activity.getMaxSpeed(), 0.001);
     }
 
     @Test
@@ -106,14 +113,20 @@ public class GarminSwimActivityTest {
         assertEquals(1258.0f, activity.getTotalDistance(), 0.00);
         assertEquals(2773.603f, activity.getTotalElapsedTime(), 0.001);
         assertEquals(2769.107f, activity.getTotalTimerTime(), 0.001);
-        assertEquals("[Lap 1]  10 lengths (BREASTSTROKE) 00:05:51: BR,BR,BR,BR,BR,BR,BR,BR,BR,BR",
+        assertEquals("[Lap 1]  10 lengths (BREASTSTROKE) 05:51 (avg 03:27/100m, best 03:05/100m)"
+                + System.lineSeparator() + "         Strokes: BR,BR,BR,BR,BR,BR,BR,BR,BR,BR",
                 activity.getLapSummary(0));
-        assertEquals("[Lap 7]   8 lengths (MIXED)        00:04:16: BR,BR,BR,BR,BR,BR,FR,BR", activity.getLapSummary(6));
+        assertEquals("[Lap 7]  8 lengths  (MIXED)        04:16 (avg 03:09/100m, best 02:11/100m)"
+                + System.lineSeparator() + "         Strokes: BR,BR,BR,BR,BR,BR,FR,BR", activity.getLapSummary(6));
         assertEquals("", activity.getLapSummary(7));
+        assertEquals(0.513f, activity.getAvgSpeed(), 0.001);
+        assertEquals(0.760f, activity.getMaxSpeed(), 0.001);
 
         // Update the pool length to 10m
         activity.updateSwimmingPoolLength(10f);
         assertEquals(10.0f, activity.getPoolLength(), 0.000);
         assertEquals(740.0f, activity.getTotalDistance(), 0.00);
+        assertEquals(0.154f, activity.getAvgSpeed(), 0.001);
+        assertEquals(0.447f, activity.getMaxSpeed(), 0.001);
     }
 }
