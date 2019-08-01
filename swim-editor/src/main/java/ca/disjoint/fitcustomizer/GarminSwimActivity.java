@@ -55,6 +55,30 @@ public class GarminSwimActivity extends GarminActivity {
         return sessionMesg.getMaxSpeed();
     }
 
+    public float getMovingTime() {
+        float movingTime = 0f;
+
+        for (GarminLap garminLap : garminLaps) {
+            // Ignore any "rest" laps
+            LapMesg lap = garminLap.getLapMessage();
+            if (lap.getSwimStroke() == null) {
+                continue;
+            }
+
+            for (LengthMesg length : garminLap.getLengthMessages()) {
+                // Ignore any non-active lengths
+                if (length.getLengthType() != LengthType.ACTIVE) {
+                    continue;
+                }
+
+                // Increment the moving time to account for this swim length
+                movingTime += length.getTotalTimerTime();
+            }
+        }
+
+        return movingTime;
+    }
+
     public void updateSwimmingPoolLength(float newPoolLength) {
         LOGGER.log(Level.DEBUG, "Updating pool length to: " + newPoolLength);
         float sessionTotalDistance = 0f;
@@ -161,12 +185,12 @@ public class GarminSwimActivity extends GarminActivity {
         fmt.format("%-15s %s", "Timer time:", Utils.convertFloatToStringDate(getTotalTimerTime()));
         sb.append(System.lineSeparator());
 
-        // // e.g. Moving time: 00:10:11
-        // fmt.format("%-15s %s", "Moving time:", Utils.convertFloatToStringDate(sessionMesg.getTotalTimerTime()));
-        // sb.append(System.lineSeparator());
-
         // e.g. Elapsed time: 00:12:11
         fmt.format("%-15s %s", "Elapsed time:", Utils.convertFloatToStringDate(getTotalElapsedTime()));
+        sb.append(System.lineSeparator());
+
+        // e.g. Moving time: 00:10:11
+        fmt.format("%-15s %s", "Moving time:", Utils.convertFloatToStringDate(getMovingTime()));
         sb.append(System.lineSeparator());
 
         // e.g. Avg pace: 04:41/100m
