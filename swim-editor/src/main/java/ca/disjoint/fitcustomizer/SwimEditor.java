@@ -12,6 +12,8 @@ import java.io.File;
 import java.net.URL;
 import java.util.Properties;
 import java.util.concurrent.Callable;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -54,6 +56,15 @@ public class SwimEditor implements Callable<Integer> {
     private static final Logger LOGGER = LogManager.getLogger(SwimEditor.class);
 
     private Terminal terminal;
+    private final InputStream input;
+    private final OutputStream output;
+    private final String[] cliArgs;
+
+    public SwimEditor(InputStream input, OutputStream output, String[] args) {
+        this.input = input;
+        this.output = output;
+        this.cliArgs = args;
+    }
 
     public Integer call() {
         if (verbose) {
@@ -64,7 +75,8 @@ public class SwimEditor implements Callable<Integer> {
         try {
             float poolLength = 0f;
 
-            terminal = TerminalBuilder.builder().system(true).signalHandler(Terminal.SignalHandler.SIG_IGN).build();
+            terminal = TerminalBuilder.builder().system(false).streams(input, output)
+                    .signalHandler(Terminal.SignalHandler.SIG_IGN).build();
 
             GarminSwimActivity activity = new GarminSwimActivity();
             GarminActivityLoader gal = new GarminActivityLoader(swimmingFitFile, activity);
@@ -81,7 +93,9 @@ public class SwimEditor implements Callable<Integer> {
                 terminal.flush();
             }
 
-            System.out.println(activity.getActivitySummary());
+            terminal.writer().append(activity.getActivitySummaryHeader());
+            terminal.writer().append(activity.getActivitySummary());
+            terminal.flush();
         } catch (Exception ex) {
             String exceptionMsg = ex.getMessage();
             String msg = String.format("Error: %s", ex.getMessage());
@@ -100,8 +114,13 @@ public class SwimEditor implements Callable<Integer> {
     }
 
     public static void main(String[] args) {
-        int exitCode = new CommandLine(new SwimEditor()).execute(args);
+        SwimEditor swm = new SwimEditor(System.in, System.out, args);
+        int exitCode = swm.start();
         System.exit(exitCode);
+    }
+
+    public int start() {
+        return new CommandLine(this).execute(cliArgs);
     }
 
     private float readPoolLength() {

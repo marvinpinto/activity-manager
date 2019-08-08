@@ -17,6 +17,9 @@ import ca.disjoint.fitcustomizer.GarminActivity;
 import ca.disjoint.fitcustomizer.GarminSwimStroke;
 import ca.disjoint.fitcustomizer.GarminLap;
 
+import org.jline.utils.AttributedStringBuilder;
+import org.jline.utils.AttributedStyle;
+
 public class GarminSwimActivity extends GarminActivity {
     private static final Logger LOGGER = LogManager.getLogger(GarminSwimActivity.class);
 
@@ -159,47 +162,98 @@ public class GarminSwimActivity extends GarminActivity {
     public String getActivitySummary() {
         StringBuilder sb = new StringBuilder();
         Formatter fmt = new Formatter(sb);
+        AttributedStringBuilder asb;
 
         // e.g. Sport: Swimming (LapSwimming)
-        fmt.format("%-15s %s (%s)", "Sport:", Utils.titleCaseString(getSport().toString()),
-                Utils.titleCaseString(getSubSport().toString()));
-        sb.append(System.lineSeparator());
+        asb = new AttributedStringBuilder();
+        asb.style(AttributedStyle.DEFAULT.foreground(AttributedStyle.YELLOW));
+        asb.append(String.format("%-15s", "Sport:"));
+        asb.style(AttributedStyle.BOLD.foreground(AttributedStyle.CYAN));
+        asb.append(String.format(" %s (%s)", Utils.titleCaseString(getSport().toString()),
+                Utils.titleCaseString(getSubSport().toString())));
+        asb.append(System.lineSeparator());
+        sb.append(asb.toAnsi());
 
         // e.g. Date: Fri Jun 21 07:01:37 EDT 2019
-        fmt.format("%-15s %s", "Date:", getCreationTime());
-        sb.append(System.lineSeparator());
+        asb = new AttributedStringBuilder();
+        asb.style(AttributedStyle.DEFAULT.foreground(AttributedStyle.YELLOW));
+        asb.append(String.format("%-15s", "Date:"));
+        asb.style(AttributedStyle.BOLD.foreground(AttributedStyle.CYAN));
+        asb.append(String.format(" %s", getCreationTime()));
+        asb.append(System.lineSeparator());
+        sb.append(asb.toAnsi());
 
         // e.g. Pool length: 15.24m
-        fmt.format("%-15s %s", "Pool length:", getPoolLength() + "m");
-        sb.append(System.lineSeparator());
+        asb = new AttributedStringBuilder();
+        asb.style(AttributedStyle.DEFAULT.foreground(AttributedStyle.YELLOW));
+        asb.append(String.format("%-15s", "Pool length:"));
+        asb.style(AttributedStyle.BOLD.foreground(AttributedStyle.CYAN));
+        asb.append(String.format(" %s", getPoolLength() + "m"));
+        asb.append(System.lineSeparator());
+        sb.append(asb.toAnsi());
 
         // e.g. Total lengths: 68 (10 laps)
-        fmt.format("%-15s %d (%d laps)", "Total lengths:", getNumActivePoolLengths(), getNumTotalPoolLaps());
-        sb.append(System.lineSeparator());
+        asb = new AttributedStringBuilder();
+        asb.style(AttributedStyle.DEFAULT.foreground(AttributedStyle.YELLOW));
+        asb.append(String.format("%-15s", "Total lengths:"));
+        asb.style(AttributedStyle.BOLD.foreground(AttributedStyle.CYAN));
+        asb.append(String.format(" %d (%d laps)", getNumActivePoolLengths(), getNumTotalPoolLaps()));
+        asb.append(System.lineSeparator());
+        sb.append(asb.toAnsi());
 
         // e.g. Distance: 1042m
-        fmt.format("%-15s %.0fm", "Distance:", sessionMesg.getTotalDistance());
-        sb.append(System.lineSeparator());
+        asb = new AttributedStringBuilder();
+        asb.style(AttributedStyle.DEFAULT.foreground(AttributedStyle.YELLOW));
+        asb.append(String.format("%-15s", "Distance:"));
+        asb.style(AttributedStyle.BOLD.foreground(AttributedStyle.CYAN));
+        asb.append(String.format(" %.0fm", sessionMesg.getTotalDistance()));
+        asb.append(System.lineSeparator());
+        sb.append(asb.toAnsi());
 
         // e.g. Timer time: 00:10:11
-        fmt.format("%-15s %s", "Timer time:", Utils.convertFloatToStringDate(getTotalTimerTime()));
-        sb.append(System.lineSeparator());
+        asb = new AttributedStringBuilder();
+        asb.style(AttributedStyle.DEFAULT.foreground(AttributedStyle.YELLOW));
+        asb.append(String.format("%-15s", "Timer time:"));
+        asb.style(AttributedStyle.BOLD.foreground(AttributedStyle.CYAN));
+        asb.append(String.format(" %s", Utils.convertFloatToStringDate(getTotalTimerTime())));
+        asb.append(System.lineSeparator());
+        sb.append(asb.toAnsi());
 
         // e.g. Elapsed time: 00:12:11
-        fmt.format("%-15s %s", "Elapsed time:", Utils.convertFloatToStringDate(getTotalElapsedTime()));
-        sb.append(System.lineSeparator());
+        asb = new AttributedStringBuilder();
+        asb.style(AttributedStyle.DEFAULT.foreground(AttributedStyle.YELLOW));
+        asb.append(String.format("%-15s", "Elapsed time:"));
+        asb.style(AttributedStyle.BOLD.foreground(AttributedStyle.CYAN));
+        asb.append(String.format(" %s", Utils.convertFloatToStringDate(getTotalElapsedTime())));
+        asb.append(System.lineSeparator());
+        sb.append(asb.toAnsi());
 
         // e.g. Moving time: 00:10:11
-        fmt.format("%-15s %s", "Moving time:", Utils.convertFloatToStringDate(getMovingTime()));
-        sb.append(System.lineSeparator());
+        asb = new AttributedStringBuilder();
+        asb.style(AttributedStyle.DEFAULT.foreground(AttributedStyle.YELLOW));
+        asb.append(String.format("%-15s", "Moving time:"));
+        asb.style(AttributedStyle.BOLD.foreground(AttributedStyle.CYAN));
+        asb.append(String.format(" %s", Utils.convertFloatToStringDate(getMovingTime())));
+        asb.append(System.lineSeparator());
+        sb.append(asb.toAnsi());
 
         // e.g. Avg pace: 04:41/100m
-        fmt.format("%-15s %s/100m", "Avg pace:", Utils.convertFloatToStringDate(100 / getAvgSpeed()));
-        sb.append(System.lineSeparator());
+        asb = new AttributedStringBuilder();
+        asb.style(AttributedStyle.DEFAULT.foreground(AttributedStyle.YELLOW));
+        asb.append(String.format("%-15s", "Avg pace:"));
+        asb.style(AttributedStyle.BOLD.foreground(AttributedStyle.CYAN));
+        asb.append(String.format(" %s/100m", Utils.convertFloatToStringDate(100 / getAvgSpeed())));
+        asb.append(System.lineSeparator());
+        sb.append(asb.toAnsi());
 
         // e.g. Best pace: 04:41/100m
-        fmt.format("%-15s %s/100m", "Best pace:", Utils.convertFloatToStringDate(100 / getMaxSpeed()));
-        sb.append(System.lineSeparator());
+        asb = new AttributedStringBuilder();
+        asb.style(AttributedStyle.DEFAULT.foreground(AttributedStyle.YELLOW));
+        asb.append(String.format("%-15s", "Best pace:"));
+        asb.style(AttributedStyle.BOLD.foreground(AttributedStyle.CYAN));
+        asb.append(String.format(" %s/100m", Utils.convertFloatToStringDate(100 / getMaxSpeed())));
+        asb.append(System.lineSeparator());
+        sb.append(asb.toAnsi());
 
         // Append the Lap Summary data
         sb.append(System.lineSeparator());
@@ -208,7 +262,7 @@ public class GarminSwimActivity extends GarminActivity {
     }
 
     public String getLapSummary(int lapIndex) {
-        StringBuilder sb = new StringBuilder();
+        AttributedStringBuilder asb = new AttributedStringBuilder();
         GarminLap garminLap = garminLaps.get(lapIndex);
         LapMesg lap = garminLap.getLapMessage();
         List<LengthMesg> lengths = garminLap.getLengthMessages();
@@ -220,25 +274,31 @@ public class GarminSwimActivity extends GarminActivity {
 
         // Summary portion
         int internalLapIndex = lap.getMessageIndex() + 1;
-        Formatter fmt = new Formatter(sb);
-        fmt.format("%-8s ", "[Lap " + internalLapIndex + "]");
-        fmt.format("%-10s ", lap.getNumActiveLengths() + " lengths");
-        fmt.format("%-14s ", "(" + lap.getSwimStroke() + ")");
-        fmt.format("%s ", Utils.convertFloatToStringDate(lap.getTotalTimerTime()));
-        fmt.format("(avg %s/100m, best %s/100m)%n", Utils.convertFloatToStringDate(100 / lap.getAvgSpeed()),
-                Utils.convertFloatToStringDate(100 / lap.getMaxSpeed()));
+        asb.style(AttributedStyle.DEFAULT.foreground(AttributedStyle.GREEN));
+        asb.append(String.format("%-8s ", "[Lap " + internalLapIndex + "]"));
+        asb.style(AttributedStyle.DEFAULT.foreground(AttributedStyle.YELLOW));
+        asb.append(String.format("%-10s ", lap.getNumActiveLengths() + " lengths"));
+        asb.style(AttributedStyle.DEFAULT.foreground(AttributedStyle.GREEN));
+        asb.append(String.format("%-14s ", "(" + lap.getSwimStroke() + ")"));
+        asb.append(String.format("%s ", Utils.convertFloatToStringDate(lap.getTotalTimerTime())));
+        asb.style(AttributedStyle.BOLD.foreground(AttributedStyle.CYAN));
+        asb.append(
+                String.format("(avg %s/100m, best %s/100m)%n", Utils.convertFloatToStringDate(100 / lap.getAvgSpeed()),
+                        Utils.convertFloatToStringDate(100 / lap.getMaxSpeed())));
 
         // Stroke list
-        fmt.format("%-8s Strokes: ", "");
+        asb.style(AttributedStyle.DEFAULT.foreground(AttributedStyle.GREEN));
+        asb.append(String.format("%-8s Strokes: ", ""));
+        asb.style(AttributedStyle.DEFAULT.foreground(AttributedStyle.YELLOW));
         for (Iterator i = lengths.iterator(); i.hasNext();) {
             LengthMesg len = (LengthMesg) i.next();
-            sb.append(GarminSwimStroke.getByValue(len.getSwimStroke().getValue()));
+            asb.append(GarminSwimStroke.getByValue(len.getSwimStroke().getValue()).toString());
             if (i.hasNext()) {
-                sb.append(",");
+                asb.append(",");
             }
         }
 
-        return sb.toString();
+        return asb.toAnsi();
     }
 
     public String getLapSummary() {

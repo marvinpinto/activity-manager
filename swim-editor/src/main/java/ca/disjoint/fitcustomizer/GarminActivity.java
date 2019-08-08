@@ -25,6 +25,9 @@ import java.util.Comparator;
 import ca.disjoint.fitcustomizer.Utils;
 import ca.disjoint.fitcustomizer.GarminLap;
 
+import org.jline.utils.AttributedStringBuilder;
+import org.jline.utils.AttributedStyle;
+
 public abstract class GarminActivity {
     private static final Logger LOGGER = LogManager.getLogger(GarminActivity.class);
     protected FileIdMesg fileIdMesg;
@@ -42,6 +45,18 @@ public abstract class GarminActivity {
         eventMessages = new ArrayList<EventMesg>();
         deviceInfoMessages = new ArrayList<DeviceInfoMesg>();
         hrvMessages = new ArrayList<HrvMesg>();
+    }
+
+    public String getActivitySummaryHeader() {
+        AttributedStringBuilder asb = new AttributedStringBuilder();
+        asb.style(AttributedStyle.DEFAULT.foreground(AttributedStyle.GREEN | AttributedStyle.BRIGHT));
+        asb.append("==================");
+        asb.append(System.lineSeparator());
+        asb.append(" Activity Summary");
+        asb.append(System.lineSeparator());
+        asb.append("==================");
+        asb.append(System.lineSeparator());
+        return asb.toAnsi();
     }
 
     public abstract String getActivitySummary();
