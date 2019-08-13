@@ -12,6 +12,7 @@ import com.garmin.fit.LengthMesg;
 import com.garmin.fit.LapMesg;
 import com.garmin.fit.DateTime;
 import com.garmin.fit.LengthType;
+import com.garmin.fit.SwimStroke;
 
 import ca.disjoint.fitcustomizer.GarminActivity;
 import ca.disjoint.fitcustomizer.GarminSwimStroke;
@@ -285,7 +286,7 @@ public class GarminSwimActivity extends GarminActivity {
         asb.style(AttributedStyle.DEFAULT.foreground(AttributedStyle.GREEN));
         asb.append(String.format("%-8s ", "[Lap " + internalLapIndex + "]"));
         asb.style(AttributedStyle.DEFAULT.foreground(AttributedStyle.YELLOW));
-        asb.append(String.format("%-10s ", lap.getNumActiveLengths() + " lengths"));
+        asb.append(String.format("%-10s ", lap.getNumLengths() + " lengths"));
         asb.style(AttributedStyle.DEFAULT.foreground(AttributedStyle.GREEN));
         asb.append(String.format("%-14s ", "(" + lap.getSwimStroke() + ")"));
         asb.append(String.format("%s ", Utils.convertFloatToStringDate(lap.getTotalTimerTime())));
@@ -300,7 +301,13 @@ public class GarminSwimActivity extends GarminActivity {
         asb.style(AttributedStyle.DEFAULT.foreground(AttributedStyle.YELLOW));
         for (Iterator i = lengths.iterator(); i.hasNext();) {
             LengthMesg len = (LengthMesg) i.next();
-            asb.append(GarminSwimStroke.getByValue(len.getSwimStroke().getValue()).toString());
+            if (len.getLengthType() != LengthType.ACTIVE) {
+                LOGGER.log(Level.DEBUG, "Length swim stroke: INVALID");
+                asb.append(GarminSwimStroke.getByValue(SwimStroke.INVALID.getValue()).toString());
+            } else {
+                LOGGER.log(Level.DEBUG, "Length swim stroke: " + len.getSwimStroke().toString());
+                asb.append(GarminSwimStroke.getByValue(len.getSwimStroke().getValue()).toString());
+            }
             if (i.hasNext()) {
                 asb.append(",");
             }

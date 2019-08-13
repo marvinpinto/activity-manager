@@ -24,27 +24,13 @@ import org.jline.utils.AttributedString;
 public class GarminSwimActivityTest {
     private GarminSwimActivity activity;
 
-    private void setUpBasicSwimData() {
+    private void setUpSwimData(String filename) {
         try {
-            URL url = this.getClass().getResource("/basic-swim.fit");
-            File basicSwimFitFile = new File(url.getFile());
+            URL url = this.getClass().getResource(filename);
+            File swimFitFile = new File(url.getFile());
 
             activity = new GarminSwimActivity();
-            GarminActivityLoader gal = new GarminActivityLoader(basicSwimFitFile, activity);
-        } catch (FileNotFoundException ex) {
-            fail(ex.getMessage());
-        } catch (IOException ex) {
-            fail(ex.getMessage());
-        }
-    }
-
-    private void setUpMultipleLapSwimData() {
-        try {
-            URL url = this.getClass().getResource("/multiple-lap-swim.fit");
-            File basicSwimFitFile = new File(url.getFile());
-
-            activity = new GarminSwimActivity();
-            GarminActivityLoader gal = new GarminActivityLoader(basicSwimFitFile, activity);
+            GarminActivityLoader gal = new GarminActivityLoader(swimFitFile, activity);
         } catch (FileNotFoundException ex) {
             fail(ex.getMessage());
         } catch (IOException ex) {
@@ -59,7 +45,7 @@ public class GarminSwimActivityTest {
 
     @Test
     public void shouldParseBasicSwimActivity() {
-        setUpBasicSwimData();
+        setUpSwimData("/basic-swim.fit");
         assertEquals(Sport.SWIMMING, activity.getSport());
         assertEquals(SubSport.LAP_SWIMMING, activity.getSubSport());
         assertEquals(22.86f, activity.getPoolLength(), 0.000);
@@ -80,7 +66,7 @@ public class GarminSwimActivityTest {
 
     @Test
     public void shouldParseMultipleLapSwimActivity() {
-        setUpMultipleLapSwimData();
+        setUpSwimData("/multiple-lap-swim.fit");
         assertEquals(Sport.SWIMMING, activity.getSport());
         assertEquals(SubSport.LAP_SWIMMING, activity.getSubSport());
         assertEquals(17.0f, activity.getPoolLength(), 0.000);
@@ -108,7 +94,7 @@ public class GarminSwimActivityTest {
 
     @Test
     public void shouldRandomizeCreationTime() {
-        setUpBasicSwimData();
+        setUpSwimData("/basic-swim.fit");
         long oldTimestamp = activity.getCreationTime().getTimestamp();
         activity.randomizeCreationTime();
         long newTimestamp = activity.getCreationTime().getTimestamp();
@@ -119,7 +105,7 @@ public class GarminSwimActivityTest {
 
     @Test
     public void shouldUpdatePoolLength() {
-        setUpMultipleLapSwimData();
+        setUpSwimData("/multiple-lap-swim.fit");
         assertEquals(Sport.SWIMMING, activity.getSport());
         assertEquals(SubSport.LAP_SWIMMING, activity.getSubSport());
         assertEquals(17.0f, activity.getPoolLength(), 0.000);
@@ -151,7 +137,7 @@ public class GarminSwimActivityTest {
 
     @Test
     public void shouldHaveIdenticalSummaryWhenPoolLengthNotUpdated() {
-        setUpMultipleLapSwimData();
+        setUpSwimData("/multiple-lap-swim.fit");
         assertEquals(Sport.SWIMMING, activity.getSport());
         assertEquals(SubSport.LAP_SWIMMING, activity.getSubSport());
         assertEquals(17.0f, activity.getPoolLength(), 0.000);
@@ -195,5 +181,26 @@ public class GarminSwimActivityTest {
         assertEquals("", activity.getLapSummary(7));
         assertEquals(0.513f, activity.getAvgSpeed(), 0.001);
         assertEquals(0.760f, activity.getMaxSpeed(), 0.001);
+    }
+
+    @Test
+    public void shouldDisplayNonActiveSwimLengths() {
+        setUpSwimData("/1_2700_3932192586.fit");
+
+        assertEquals(Sport.SWIMMING, activity.getSport());
+        assertEquals(SubSport.LAP_SWIMMING, activity.getSubSport());
+
+        String lap1 = "[Lap 1]  15 lengths (BREASTSTROKE) 08:28 (avg 03:52/100m, best 02:41/100m)"
+                + AttributedString.stripAnsi(System.lineSeparator())
+                + "         Strokes: INV,BR,BR,BR,BR,BR,BR,BR,BR,BR,BR,BR,BR,BR,BR";
+        assertThat(AttributedString.stripAnsi(activity.getLapSummary(0)), equalTo(lap1));
+
+        String lap3 = "[Lap 3]  3 lengths  (MIXED)        02:04 (avg 03:30/100m, best 03:13/100m)"
+                + AttributedString.stripAnsi(System.lineSeparator()) + "         Strokes: FR,BR,INV";
+        assertThat(AttributedString.stripAnsi(activity.getLapSummary(2)), equalTo(lap3));
+
+        String lap6 = "[Lap 6]  3 lengths  (MIXED)        01:59 (avg 03:34/100m, best 03:28/100m)"
+                + AttributedString.stripAnsi(System.lineSeparator()) + "         Strokes: FR,BR,INV";
+        assertThat(AttributedString.stripAnsi(activity.getLapSummary(5)), equalTo(lap6));
     }
 }
