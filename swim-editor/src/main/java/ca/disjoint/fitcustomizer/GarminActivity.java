@@ -16,6 +16,8 @@ import com.garmin.fit.DeviceInfoMesg;
 import com.garmin.fit.HrvMesg;
 import com.garmin.fit.Sport;
 import com.garmin.fit.SubSport;
+import com.garmin.fit.Manufacturer;
+import com.garmin.fit.GarminProduct;
 
 import java.util.List;
 import java.util.Random;
@@ -158,5 +160,16 @@ public abstract class GarminActivity {
 
     public SubSport getSubSport() {
         return sessionMesg.getSubSport();
+    }
+
+    public String getDeviceManufacturer() {
+        return Manufacturer.getStringFromValue(fileIdMesg.getManufacturer());
+    }
+
+    public String getDeviceName() {
+        if (fileIdMesg.getManufacturer() == Manufacturer.GARMIN) {
+            return GarminProduct.getStringFromValue(fileIdMesg.getProduct());
+        }
+        return "UNKONWN";
     }
 }

@@ -181,6 +181,16 @@ public class GarminSwimActivity extends GarminActivity {
         asb.append(System.lineSeparator());
         sb.append(asb.toAnsi());
 
+        // e.g. Device: Garmin Vivoactive3
+        asb = new AttributedStringBuilder();
+        asb.style(AttributedStyle.DEFAULT.foreground(AttributedStyle.YELLOW));
+        asb.append(String.format("%-15s", "Device:"));
+        asb.style(AttributedStyle.BOLD.foreground(AttributedStyle.CYAN));
+        asb.append(String.format(" %s %s", Utils.titleCaseString(getDeviceManufacturer()),
+                Utils.titleCaseString(getDeviceName())));
+        asb.append(System.lineSeparator());
+        sb.append(asb.toAnsi());
+
         // e.g. Pool length: 15.24m
         asb = new AttributedStringBuilder();
         asb.style(AttributedStyle.DEFAULT.foreground(AttributedStyle.YELLOW));

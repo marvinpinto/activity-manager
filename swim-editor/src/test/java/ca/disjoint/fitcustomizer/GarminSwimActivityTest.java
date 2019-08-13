@@ -1,9 +1,11 @@
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import org.junit.Test;
 import org.junit.Before;
 import org.junit.After;
+import static org.hamcrest.CoreMatchers.equalTo;
 
 import java.net.URL;
 import java.io.File;
@@ -56,7 +58,7 @@ public class GarminSwimActivityTest {
     }
 
     @Test
-    public void shouldParseBasicSwimActivityCorrectly() {
+    public void shouldParseBasicSwimActivity() {
         setUpBasicSwimData();
         assertEquals(Sport.SWIMMING, activity.getSport());
         assertEquals(SubSport.LAP_SWIMMING, activity.getSubSport());
@@ -72,10 +74,12 @@ public class GarminSwimActivityTest {
                 AttributedString.stripAnsi(activity.getLapSummary(0)));
         assertEquals(0.488f, activity.getAvgSpeed(), 0.001);
         assertEquals(0.589f, activity.getMaxSpeed(), 0.001);
+        assertThat(activity.getDeviceManufacturer(), equalTo("GARMIN"));
+        assertThat(activity.getDeviceName(), equalTo("VIVOACTIVE3"));
     }
 
     @Test
-    public void shouldParseMultipleLapSwimActivityCorrectly() {
+    public void shouldParseMultipleLapSwimActivity() {
         setUpMultipleLapSwimData();
         assertEquals(Sport.SWIMMING, activity.getSport());
         assertEquals(SubSport.LAP_SWIMMING, activity.getSubSport());
@@ -98,6 +102,8 @@ public class GarminSwimActivityTest {
         assertEquals("", activity.getLapSummary(7));
         assertEquals(0.513f, activity.getAvgSpeed(), 0.001);
         assertEquals(0.760f, activity.getMaxSpeed(), 0.001);
+        assertThat(activity.getDeviceManufacturer(), equalTo("GARMIN"));
+        assertThat(activity.getDeviceName(), equalTo("VIVOACTIVE3"));
     }
 
     @Test
