@@ -137,6 +137,20 @@ public class SwimEditorTest {
     }
 
     @Test
+    public void shouldNotRandomizeCreationTimeWhenRequested() {
+        String actualCreationTime = "Wed Jul 04 07:40:39 EDT 2018";
+        URL url = this.getClass().getResource("/basic-swim.fit");
+        String[] args = { "--no-randomize-ctime", url.getFile() };
+        inst = new SwimEditor(inContent, outContent, terminal, args);
+        int exitCode = inst.start();
+        String plainOutput = AttributedString.stripAnsi(outContent.toString());
+        String capturedDate = TestUtils.matchRegexGroup(".*Date:(.*)", plainOutput);
+
+        assertThat(exitCode, equalTo(CommandLine.ExitCode.OK));
+        assertThat(capturedDate, equalTo(actualCreationTime));
+    }
+
+    @Test
     public void shouldEditPoolLength() throws IOException, InterruptedException {
         URL url = this.getClass().getResource("/basic-swim.fit");
         String[] args = { "--verbose", "--edit", url.getFile() };

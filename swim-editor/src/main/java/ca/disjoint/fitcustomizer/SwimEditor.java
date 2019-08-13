@@ -51,7 +51,7 @@ public class SwimEditor implements Callable<Integer> {
     private boolean editMode = false;
 
     @Option(names = {
-            "--randomize-ctime" }, negatable = true, description = "Randomize the activity start time. This allows you to upload duplicate activities to Strava, Garmin Connect, and other similar services (default: ${DEFAULT-VALUE})")
+            "--no-randomize-ctime" }, negatable = true, description = "Randomize the activity start time. This allows you to upload duplicate activities to Strava, Garmin Connect, and other similar services (default: ${DEFAULT-VALUE})")
     private boolean randomizeCreationTime = true;
 
     private static final Logger LOGGER = LogManager.getLogger(SwimEditor.class);
