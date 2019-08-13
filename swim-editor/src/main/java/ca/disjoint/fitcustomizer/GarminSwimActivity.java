@@ -87,16 +87,17 @@ public class GarminSwimActivity extends GarminActivity {
         float sessionTotalDistance = 0f;
         float sessionTotalSpeed = 0f;
         float sessionMaxSpeed = 0f;
+        int activeLaps = 0;
 
         for (GarminLap garminLap : garminLaps) {
             float lapMaxSpeed = 0f;
-            float lapTotalSpeed = 0f;
             LapMesg lap = garminLap.getLapMessage();
 
             // Ignore any "rest" laps
             if (lap.getSwimStroke() == null) {
                 continue;
             }
+            activeLaps++;
 
             for (LengthMesg length : garminLap.getLengthMessages()) {
                 // Ignore any non-active lengths
@@ -117,21 +118,18 @@ public class GarminSwimActivity extends GarminActivity {
                 if (avgSpeed > sessionMaxSpeed) {
                     sessionMaxSpeed = avgSpeed;
                 }
-
-                // Increment the lap total speed
-                lapTotalSpeed += avgSpeed;
             }
-
-            // Calculate the avg/max speed metrics for this lap
-            float lapAvgSpeed = lapTotalSpeed / lap.getNumActiveLengths();
-            lap.setAvgSpeed(lapAvgSpeed);
-            lap.setMaxSpeed(lapMaxSpeed);
-            lap.setEnhancedAvgSpeed(lapAvgSpeed);
-            lap.setEnhancedMaxSpeed(lapMaxSpeed);
 
             // Set the total lap distance
             float lapTotalDistance = lap.getNumActiveLengths() * newPoolLength;
             lap.setTotalDistance(lapTotalDistance);
+
+            // Calculate the avg/max speed metrics for this lap
+            float lapAvgSpeed = lapTotalDistance / lap.getTotalElapsedTime();
+            lap.setAvgSpeed(lapAvgSpeed);
+            lap.setMaxSpeed(lapMaxSpeed);
+            lap.setEnhancedAvgSpeed(lapAvgSpeed);
+            lap.setEnhancedMaxSpeed(lapMaxSpeed);
 
             // Increment the session distance
             sessionTotalDistance += lapTotalDistance;
@@ -147,8 +145,8 @@ public class GarminSwimActivity extends GarminActivity {
 
         // Update the session metrics to account for the new pool length
         sessionMesg.setTotalDistance(sessionTotalDistance);
-        LOGGER.log(Level.DEBUG, "Session total speed: " + sessionTotalSpeed + ", laps: " + sessionMesg.getNumLaps());
-        float sessionAvgSpeed = sessionTotalSpeed / sessionMesg.getNumLaps();
+        LOGGER.log(Level.DEBUG, "Session total speed: " + sessionTotalSpeed + ", laps: " + activeLaps);
+        float sessionAvgSpeed = sessionTotalSpeed / activeLaps;
         LOGGER.log(Level.DEBUG, "Session avg speed: " + sessionAvgSpeed);
         sessionMesg.setAvgSpeed(sessionAvgSpeed);
         sessionMesg.setMaxSpeed(sessionMaxSpeed);
