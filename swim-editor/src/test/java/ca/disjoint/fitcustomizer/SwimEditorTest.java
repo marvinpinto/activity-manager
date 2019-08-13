@@ -150,9 +150,9 @@ public class SwimEditorTest {
             public void run() {
                 try {
                     Thread.sleep(10);
-                    // Backspace to erase the preset pool length value (erases "15.24")
+                    // Backspace to erase the preset pool length value (erases "22.86")
                     // Enter in an invalid value (triggers an error + re-prompt)
-                    // Backspace to erase the preset pool length value (erases "15.24")
+                    // Backspace to erase the preset pool length value (erases "22.86")
                     // Enter in a new pool length of 50m
                     pout.write("\b\b\b\b\binvalidlength\n\b\b\b\b\b50\n".getBytes());
                     pout.flush();

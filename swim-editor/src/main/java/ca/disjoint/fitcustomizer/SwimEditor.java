@@ -84,7 +84,7 @@ public class SwimEditor implements Callable<Integer> {
             }
 
             if (editMode) {
-                poolLength = readPoolLength();
+                poolLength = readPoolLength(activity.getPoolLength());
                 LOGGER.log(Level.DEBUG, "User entered pool length: " + poolLength);
                 activity.updateSwimmingPoolLength(poolLength);
                 terminal.puts(Capability.clear_screen);
@@ -123,7 +123,7 @@ public class SwimEditor implements Callable<Integer> {
         return new CommandLine(this).execute(cliArgs);
     }
 
-    private float readPoolLength() {
+    private float readPoolLength(float currentPoolLength) {
         LOGGER.log(Level.DEBUG, "Presenting prompt to read swimming pool length");
         LineReaderBuilder lrb = LineReaderBuilder.builder();
         lrb.terminal(terminal);
@@ -135,7 +135,6 @@ public class SwimEditor implements Callable<Integer> {
 
         String userInput = "";
         String promptRightSide = null;
-        float currentPoolLength = 15.24f;
         float poolLength = 0f;
 
         while (poolLength <= 0f) {
