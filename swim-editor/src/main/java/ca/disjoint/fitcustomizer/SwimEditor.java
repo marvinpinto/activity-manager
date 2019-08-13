@@ -9,6 +9,7 @@ import picocli.CommandLine.Parameters;
 import picocli.CommandLine.IVersionProvider;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 import java.util.Properties;
 import java.util.concurrent.Callable;
@@ -60,10 +61,11 @@ public class SwimEditor implements Callable<Integer> {
     private final OutputStream output;
     private final String[] cliArgs;
 
-    public SwimEditor(InputStream input, OutputStream output, String[] args) {
+    public SwimEditor(InputStream input, OutputStream output, Terminal terminal, String[] args) {
         this.input = input;
         this.output = output;
         this.cliArgs = args;
+        this.terminal = terminal;
     }
 
     public Integer call() {
@@ -74,10 +76,6 @@ public class SwimEditor implements Callable<Integer> {
 
         try {
             float poolLength = 0f;
-
-            terminal = TerminalBuilder.builder().system(false).streams(input, output)
-                    .signalHandler(Terminal.SignalHandler.SIG_IGN).build();
-
             GarminSwimActivity activity = new GarminSwimActivity();
             GarminActivityLoader gal = new GarminActivityLoader(swimmingFitFile, activity);
 
@@ -113,8 +111,10 @@ public class SwimEditor implements Callable<Integer> {
         return 0;
     }
 
-    public static void main(String[] args) {
-        SwimEditor swm = new SwimEditor(System.in, System.out, args);
+    public static void main(String[] args) throws IOException {
+        Terminal term = TerminalBuilder.builder().system(true).signalHandler(Terminal.SignalHandler.SIG_IGN).build();
+
+        SwimEditor swm = new SwimEditor(System.in, System.out, term, args);
         int exitCode = swm.start();
         System.exit(exitCode);
     }
@@ -124,7 +124,10 @@ public class SwimEditor implements Callable<Integer> {
     }
 
     private float readPoolLength() {
-        LineReader reader = LineReaderBuilder.builder().build();
+        LOGGER.log(Level.DEBUG, "Presenting prompt to read swimming pool length");
+        LineReaderBuilder lrb = LineReaderBuilder.builder();
+        lrb.terminal(terminal);
+        LineReader reader = lrb.build();
 
         String prompt = new AttributedStringBuilder().style(AttributedStyle.BOLD.foreground(AttributedStyle.GREEN))
                 .append("Pool length (meters):").style(AttributedStyle.DEFAULT.foreground(AttributedStyle.GREEN))
@@ -145,6 +148,7 @@ public class SwimEditor implements Callable<Integer> {
 
                 ParsedLine pl = reader.getParser().parse(line, 0);
                 userInput = pl.words().get(0);
+                LOGGER.log(Level.DEBUG, "Raw user-entered pool length: " + userInput);
                 poolLength = Float.parseFloat(userInput);
 
             } catch (UserInterruptException e) {
