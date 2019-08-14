@@ -3,6 +3,7 @@ package ca.disjoint.fitcustomizer;
 import java.util.List;
 import java.util.Iterator;
 import java.util.Formatter;
+import java.util.ArrayList;
 
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.Level;
@@ -83,14 +84,16 @@ public class GarminSwimActivity extends GarminActivity {
         return movingTime;
     }
 
-    public void updateSwimmingPoolLength(float newPoolLength) {
-        LOGGER.log(Level.DEBUG, "Updating pool length to: " + newPoolLength);
+    public void recalculateActivityStats() {
+        LOGGER.log(Level.DEBUG, "Recalculating Garmin activity stats");
         float sessionTotalDistance = 0f;
         float sessionTotalSpeed = 0f;
         float sessionMaxSpeed = 0f;
+        float poolLength = getPoolLength();
         int activeLaps = 0;
 
         for (GarminLap garminLap : garminLaps) {
+            int lapNumActiveLengths = 0;
             float lapMaxSpeed = 0f;
             LapMesg lap = garminLap.getLapMessage();
 
@@ -106,8 +109,11 @@ public class GarminSwimActivity extends GarminActivity {
                     continue;
                 }
 
-                // Update the avg speed to reflect the new pool length
-                float avgSpeed = newPoolLength / length.getTotalTimerTime();
+                // Update the number of "active lengths" in this lap
+                lapNumActiveLengths++;
+
+                // Update the avg speed to reflect the pool length
+                float avgSpeed = poolLength / length.getTotalTimerTime();
                 length.setAvgSpeed(avgSpeed);
 
                 // Update the lap max speed, if applicable
@@ -121,8 +127,11 @@ public class GarminSwimActivity extends GarminActivity {
                 }
             }
 
+            // Set the number of active lengths for this lap
+            lap.setNumActiveLengths(lapNumActiveLengths);
+
             // Set the total lap distance
-            float lapTotalDistance = lap.getNumActiveLengths() * newPoolLength;
+            float lapTotalDistance = lap.getNumActiveLengths() * poolLength;
             lap.setTotalDistance(lapTotalDistance);
 
             // Calculate the avg/max speed metrics for this lap
@@ -144,7 +153,7 @@ public class GarminSwimActivity extends GarminActivity {
             lap.setAvgStrokeDistance(lapAvgStrokeDistance);
         }
 
-        // Update the session metrics to account for the new pool length
+        // Update the session metrics to account for the pool length
         sessionMesg.setTotalDistance(sessionTotalDistance);
         LOGGER.log(Level.DEBUG, "Session total speed: " + sessionTotalSpeed + ", laps: " + activeLaps);
         float sessionAvgSpeed = sessionTotalSpeed / activeLaps;
@@ -154,7 +163,11 @@ public class GarminSwimActivity extends GarminActivity {
         sessionMesg.setEnhancedAvgSpeed(sessionAvgSpeed);
         sessionMesg.setEnhancedMaxSpeed(sessionMaxSpeed);
         sessionMesg.setAvgStrokeDistance(sessionMesg.getTotalDistance() / sessionMesg.getTotalCycles());
+    }
+
+    public void updateSwimmingPoolLength(float newPoolLength) {
         sessionMesg.setPoolLength(newPoolLength);
+        recalculateActivityStats();
     }
 
     @Override
@@ -270,6 +283,24 @@ public class GarminSwimActivity extends GarminActivity {
         return sb.toString();
     }
 
+    public List<Integer> getActiveSwimLaps() {
+        List<Integer> activeSwimLaps = new ArrayList();
+
+        for (int i = 0; i < garminLaps.size(); i++) {
+            GarminLap garminLap = garminLaps.get(i);
+            LapMesg lap = garminLap.getLapMessage();
+
+            // Ignore any "rest" laps
+            if (lap.getSwimStroke() == null) {
+                continue;
+            }
+
+            activeSwimLaps.add(i);
+        }
+
+        return activeSwimLaps;
+    }
+
     public String getLapSummary(int lapIndex) {
         AttributedStringBuilder asb = new AttributedStringBuilder();
         GarminLap garminLap = garminLaps.get(lapIndex);
@@ -302,10 +333,8 @@ public class GarminSwimActivity extends GarminActivity {
         for (Iterator i = lengths.iterator(); i.hasNext();) {
             LengthMesg len = (LengthMesg) i.next();
             if (len.getLengthType() != LengthType.ACTIVE) {
-                LOGGER.log(Level.DEBUG, "Length swim stroke: INVALID");
                 asb.append(GarminSwimStroke.getByValue(SwimStroke.INVALID.getValue()).toString());
             } else {
-                LOGGER.log(Level.DEBUG, "Length swim stroke: " + len.getSwimStroke().toString());
                 asb.append(GarminSwimStroke.getByValue(len.getSwimStroke().getValue()).toString());
             }
             if (i.hasNext()) {

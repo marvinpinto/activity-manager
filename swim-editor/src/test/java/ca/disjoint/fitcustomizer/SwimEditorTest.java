@@ -152,6 +152,7 @@ public class SwimEditorTest {
 
     @Test
     public void shouldEditPoolLength() throws IOException, InterruptedException {
+        StringBuilder sb = new StringBuilder();
         URL url = this.getClass().getResource("/basic-swim.fit");
         String[] args = { "--verbose", "--edit", url.getFile() };
 
@@ -165,10 +166,16 @@ public class SwimEditorTest {
                 try {
                     Thread.sleep(10);
                     // Backspace to erase the preset pool length value (erases "22.86")
+                    sb.append("\b\b\b\b\b");
                     // Enter in an invalid value (triggers an error + re-prompt)
+                    sb.append("invalidlength\n");
                     // Backspace to erase the preset pool length value (erases "22.86")
+                    sb.append("\b\b\b\b\b");
                     // Enter in a new pool length of 50m
-                    pout.write("\b\b\b\b\binvalidlength\n\b\b\b\b\b50\n".getBytes());
+                    sb.append("50\n");
+                    // Enter -1 to simulate ctrl+d, to signal we don't wish to edit any laps
+                    sb.append("-1\n");
+                    pout.write(sb.toString().getBytes());
                     pout.flush();
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -185,5 +192,57 @@ public class SwimEditorTest {
         assertThat(exitCode, equalTo(CommandLine.ExitCode.OK));
         String capturedPoolLength = TestUtils.matchRegexGroup(".*Pool length:(.*)", plainOutput);
         assertThat(capturedPoolLength, equalTo("50.0m"));
+    }
+
+    @Test
+    public void shouldEditSwimmingLaps() throws IOException, InterruptedException {
+        StringBuilder sb = new StringBuilder();
+        URL url = this.getClass().getResource("/basic-swim.fit");
+        String[] args = { "--verbose", "--edit", url.getFile() };
+
+        PipedInputStream pin = new PipedInputStream();
+        PipedOutputStream pout = new PipedOutputStream();
+        pout.connect(pin);
+        terminal = getCustomizedTerminal(pin, outContent);
+
+        Thread th = new Thread() {
+            public void run() {
+                try {
+                    Thread.sleep(10);
+                    // Enter to accept the preset pool length of 22.86
+                    sb.append("\n");
+                    // Enter an invalid lap number
+                    sb.append("5\n");
+                    // Edit lap #1
+                    sb.append("1\n");
+                    // Backspace to erase the preset (current) stroke (erases "breaststroke")
+                    sb.append("\b\b\b\b\b\b\b\b\b\b\b\b");
+                    // Enter an invalid stroke type
+                    sb.append("lambada\n");
+                    // Backspace to erase the preset (current) stroke (erases "breaststroke")
+                    sb.append("\b\b\b\b\b\b\b\b\b\b\b\b");
+                    // Enter "freestyle" as the stroke
+                    sb.append("freestyle\n");
+                    // Hit "enter" 5 times to accept the default (current) strokes
+                    sb.append("\n\n\n\n\n");
+                    // Enter -1 to simulate ctrl+d, to signal we don't wish to edit any more laps
+                    sb.append("-1\n");
+                    pout.write(sb.toString().getBytes());
+                    pout.flush();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+        th.start();
+
+        inst = new SwimEditor(pin, outContent, terminal, args);
+        int exitCode = inst.start();
+        th.join();
+
+        String plainOutput = AttributedString.stripAnsi(outContent.toString());
+        assertThat(exitCode, equalTo(CommandLine.ExitCode.OK));
+        boolean matches = TestUtils.doesRegexPatternMatch(".*Strokes:.*FR,BR,BR,BR,BR,BR.*", plainOutput);
+        assertTrue("Output did not contain \"Strokes: FR,BR,BR,BR,BR,BR\" - output: " + plainOutput, matches);
     }
 }

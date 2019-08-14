@@ -118,6 +118,14 @@ public abstract class GarminActivity {
         return garminLaps;
     }
 
+    public GarminLap getGarminLap(int index) {
+        return garminLaps.get(index);
+    }
+
+    public void replaceGarminLap(int index, GarminLap lap) {
+        garminLaps.set(index, lap);
+    }
+
     public void addRecordMessage(RecordMesg mesg) {
         Utils.logFitMessage(mesg);
         recordMessages.add(mesg);
