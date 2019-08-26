@@ -30,16 +30,14 @@ import com.garmin.fit.MesgBroadcaster;
 import com.garmin.fit.RecordMesgListener;
 import com.garmin.fit.RecordMesg;
 
-import ca.disjoint.fitcustomizer.Utils;
-import ca.disjoint.fitcustomizer.GarminActivity;
-
 public class GarminActivityLoader {
     private static final Logger LOGGER = LogManager.getLogger(GarminActivityLoader.class);
     private DataReader reader;
     private List<LengthMesg> lengthMessages;
     private GarminActivity garminActivity;
 
-    public GarminActivityLoader(File fitFile, GarminActivity garminActivity) throws FileNotFoundException, IOException {
+    public GarminActivityLoader(final File fitFile, final GarminActivity garminActivity)
+            throws FileNotFoundException, IOException {
         Decode decode = new Decode();
         MesgBroadcaster mesgBroadcaster = new MesgBroadcaster(decode);
         reader = new DataReader();
@@ -75,27 +73,27 @@ public class GarminActivityLoader {
             ActivityMesgListener, EventMesgListener, DeviceInfoMesgListener, RecordMesgListener {
 
         @Override
-        public void onMesg(RecordMesg mesg) {
+        public void onMesg(final RecordMesg mesg) {
             garminActivity.addRecordMessage(mesg);
         }
 
         @Override
-        public void onMesg(DeviceInfoMesg mesg) {
+        public void onMesg(final DeviceInfoMesg mesg) {
             garminActivity.addDeviceInfoMessage(mesg);
         }
 
         @Override
-        public void onMesg(EventMesg mesg) {
+        public void onMesg(final EventMesg mesg) {
             garminActivity.addEventMessage(mesg);
         }
 
         @Override
-        public void onMesg(ActivityMesg mesg) {
+        public void onMesg(final ActivityMesg mesg) {
             garminActivity.setActivityMesg(mesg);
         }
 
         @Override
-        public void onMesg(LapMesg mesg) {
+        public void onMesg(final LapMesg mesg) {
             garminActivity.addGarminLap(mesg, lengthMessages);
 
             // Reset the lengthMessages list for the next lap
@@ -103,17 +101,17 @@ public class GarminActivityLoader {
         }
 
         @Override
-        public void onMesg(LengthMesg mesg) {
+        public void onMesg(final LengthMesg mesg) {
             lengthMessages.add(mesg);
         }
 
         @Override
-        public void onMesg(SessionMesg mesg) {
+        public void onMesg(final SessionMesg mesg) {
             garminActivity.setSessionMesg(mesg);
         }
 
         @Override
-        public void onMesg(FileIdMesg mesg) {
+        public void onMesg(final FileIdMesg mesg) {
             garminActivity.setFileIdMesg(mesg);
         }
     }

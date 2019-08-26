@@ -22,24 +22,20 @@ import com.garmin.fit.GarminProduct;
 import java.util.List;
 import java.util.Random;
 import java.util.ArrayList;
-import java.util.Comparator;
-
-import ca.disjoint.fitcustomizer.Utils;
-import ca.disjoint.fitcustomizer.GarminLap;
 
 import org.jline.utils.AttributedStringBuilder;
 import org.jline.utils.AttributedStyle;
 
 public abstract class GarminActivity {
     private static final Logger LOGGER = LogManager.getLogger(GarminActivity.class);
-    protected FileIdMesg fileIdMesg;
-    protected ActivityMesg activityMesg;
-    protected SessionMesg sessionMesg;
-    protected List<GarminLap> garminLaps; // one lap has many lengths
-    protected List<RecordMesg> recordMessages;
-    protected List<EventMesg> eventMessages;
-    protected List<DeviceInfoMesg> deviceInfoMessages;
-    protected List<HrvMesg> hrvMessages;
+    private FileIdMesg fileIdMesg;
+    private ActivityMesg activityMesg;
+    private SessionMesg sessionMesg;
+    private List<GarminLap> garminLaps; // one lap has many lengths
+    private List<RecordMesg> recordMessages;
+    private List<EventMesg> eventMessages;
+    private List<DeviceInfoMesg> deviceInfoMessages;
+    private List<HrvMesg> hrvMessages;
 
     public GarminActivity() {
         garminLaps = new ArrayList<GarminLap>();
@@ -49,7 +45,7 @@ public abstract class GarminActivity {
         hrvMessages = new ArrayList<HrvMesg>();
     }
 
-    public String getActivitySummaryHeader() {
+    public final String getActivitySummaryHeader() {
         AttributedStringBuilder asb = new AttributedStringBuilder();
         asb.style(AttributedStyle.DEFAULT.foreground(AttributedStyle.GREEN | AttributedStyle.BRIGHT));
         asb.append("==================");
@@ -63,50 +59,51 @@ public abstract class GarminActivity {
 
     public abstract String getActivitySummary();
 
-    public void setFileIdMesg(FileIdMesg mesg) {
+    public final void setFileIdMesg(final FileIdMesg mesg) {
         Utils.logFitMessage(mesg);
         fileIdMesg = mesg;
     }
 
-    public void randomizeCreationTime() {
+    @SuppressWarnings("checkstyle:MagicNumber")
+    public final void randomizeCreationTime() {
         DateTime creationTime = fileIdMesg.getTimeCreated();
 
         Random r = new Random();
-        long low = 1l;
-        long high = 100l;
+        long low = 1L;
+        long high = 100L;
         long timestamp = (low + (long) (Math.random() * (high - low))) * -1;
         LOGGER.log(Level.DEBUG, "Generated random timestamp value " + timestamp);
         creationTime.add(timestamp);
         fileIdMesg.setTimeCreated(creationTime);
     }
 
-    public DateTime getCreationTime() {
+    public final DateTime getCreationTime() {
         return fileIdMesg.getTimeCreated();
     }
 
-    public FileIdMesg getFileIdMesg() {
+    public final FileIdMesg getFileIdMesg() {
         return fileIdMesg;
     }
 
-    public void setActivityMesg(ActivityMesg mesg) {
+    public final void setActivityMesg(final ActivityMesg mesg) {
         Utils.logFitMessage(mesg);
         activityMesg = mesg;
     }
 
-    public ActivityMesg getActivityMesg() {
+    public final ActivityMesg getActivityMesg() {
         return activityMesg;
     }
 
-    public void setSessionMesg(SessionMesg mesg) {
+    public final void setSessionMesg(final SessionMesg mesg) {
         Utils.logFitMessage(mesg);
         sessionMesg = mesg;
     }
 
-    public SessionMesg getSessionMesg() {
+    public final SessionMesg getSessionMesg() {
         return sessionMesg;
     }
 
-    public void addGarminLap(LapMesg lapMesg, List<LengthMesg> lengthMessages) {
+    public final void addGarminLap(final LapMesg lapMesg, final List<LengthMesg> lengthMessages) {
         Utils.logFitMessage(lapMesg);
         for (LengthMesg m : lengthMessages) {
             Utils.logFitMessage(m);
@@ -114,67 +111,67 @@ public abstract class GarminActivity {
         garminLaps.add(new GarminLap(lapMesg, lengthMessages));
     }
 
-    public List<GarminLap> getGarminLaps() {
+    public final List<GarminLap> getGarminLaps() {
         return garminLaps;
     }
 
-    public GarminLap getGarminLap(int index) {
+    public final GarminLap getGarminLap(final int index) {
         return garminLaps.get(index);
     }
 
-    public void replaceGarminLap(int index, GarminLap lap) {
+    public final void replaceGarminLap(final int index, final GarminLap lap) {
         garminLaps.set(index, lap);
     }
 
-    public void addRecordMessage(RecordMesg mesg) {
+    public final void addRecordMessage(final RecordMesg mesg) {
         Utils.logFitMessage(mesg);
         recordMessages.add(mesg);
     }
 
-    public List<RecordMesg> getRecordMessages() {
+    public final List<RecordMesg> getRecordMessages() {
         return recordMessages;
     }
 
-    public void addEventMessage(EventMesg mesg) {
+    public final void addEventMessage(final EventMesg mesg) {
         Utils.logFitMessage(mesg);
         eventMessages.add(mesg);
     }
 
-    public List<EventMesg> getEventMessages() {
+    public final List<EventMesg> getEventMessages() {
         return eventMessages;
     }
 
-    public void addDeviceInfoMessage(DeviceInfoMesg mesg) {
+    public final void addDeviceInfoMessage(final DeviceInfoMesg mesg) {
         Utils.logFitMessage(mesg);
         deviceInfoMessages.add(mesg);
     }
 
-    public List<DeviceInfoMesg> getDeviceInfoMessages() {
+    public final List<DeviceInfoMesg> getDeviceInfoMessages() {
         return deviceInfoMessages;
     }
 
-    public void addHrvMessage(HrvMesg mesg) {
+    public final void addHrvMessage(final HrvMesg mesg) {
         Utils.logFitMessage(mesg);
         hrvMessages.add(mesg);
     }
 
-    public List<HrvMesg> getHrvMessages() {
+    public final List<HrvMesg> getHrvMessages() {
         return hrvMessages;
     }
 
-    public Sport getSport() {
+    public final Sport getSport() {
         return sessionMesg.getSport();
     }
 
-    public SubSport getSubSport() {
+    public final SubSport getSubSport() {
         return sessionMesg.getSubSport();
     }
 
-    public String getDeviceManufacturer() {
+    public final String getDeviceManufacturer() {
         return Manufacturer.getStringFromValue(fileIdMesg.getManufacturer());
     }
 
-    public String getDeviceName() {
+    public final String getDeviceName() {
         if (fileIdMesg.getManufacturer() == Manufacturer.GARMIN) {
             return GarminProduct.getStringFromValue(fileIdMesg.getProduct());
         }

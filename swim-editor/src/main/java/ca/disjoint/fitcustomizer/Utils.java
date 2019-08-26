@@ -23,7 +23,13 @@ import org.apache.commons.lang3.text.WordUtils;
 public final class Utils {
     private static final Logger LOGGER = LogManager.getLogger(Utils.class);
 
-    public static boolean checkFitFileIntegrity(File file) throws FileNotFoundException, IOException {
+    public static final int PACE_PER_HUNDRED_METERS = 100;
+
+    protected Utils() {
+        throw new UnsupportedOperationException();
+    }
+
+    public static boolean checkFitFileIntegrity(final File file) throws FileNotFoundException, IOException {
         Decode decode = new Decode();
 
         LOGGER.log(Level.DEBUG, "Opening input file " + file.getName() + " in order to verify FIT file integrity");
@@ -40,7 +46,8 @@ public final class Utils {
         return fitIntegrityStatus;
     }
 
-    public static String convertFloatToStringDate(float value) {
+    @SuppressWarnings("checkstyle:MagicNumber")
+    public static String convertFloatToStringDate(final float value) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss").withZone(ZoneId.of("UTC"));
         Instant instant = Instant.ofEpochMilli((long) (value * 1000));
         String retval = formatter.format(instant);
@@ -52,7 +59,7 @@ public final class Utils {
         return retval;
     }
 
-    public static String titleCaseString(String input) {
+    public static String titleCaseString(final String input) {
         String op = input;
         op = op.replaceAll("_", " ");
         op = WordUtils.capitalizeFully(op);
@@ -61,7 +68,7 @@ public final class Utils {
         return op;
     }
 
-    public static void logFitMessage(Mesg mesg) {
+    public static void logFitMessage(final Mesg mesg) {
         String msgName = mesg.getName();
         LOGGER.log(Level.TRACE, "Raw message name:" + msgName);
         Class<?> classType = null;

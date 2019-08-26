@@ -13,14 +13,12 @@ import org.apache.logging.log4j.LogManager;
 
 import com.garmin.fit.BufferEncoder;
 
-import ca.disjoint.fitcustomizer.Utils;
-
-public class FitWriter {
+public final class FitWriter {
     private static final Logger LOGGER = LogManager.getLogger(FitWriter.class);
     private BufferEncoder inputFitFile;
     private String originalFileName;
 
-    public FitWriter(BufferEncoder fitFile, String fileName) {
+    public FitWriter(final BufferEncoder fitFile, final String fileName) {
         inputFitFile = fitFile;
         originalFileName = fileName;
     }
@@ -42,7 +40,7 @@ public class FitWriter {
         return newFitFile.getName();
     }
 
-    private File getNewFileHandle(String originalFileName) {
+    private File getNewFileHandle(final String originalFileName) {
         LOGGER.log(Level.DEBUG, "Determining file name for update FIT file (original: " + originalFileName + ")");
 
         String[] tokens = originalFileName.split("\\.(?=[^\\.]+$)");

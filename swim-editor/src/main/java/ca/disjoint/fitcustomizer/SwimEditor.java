@@ -2,7 +2,6 @@ package ca.disjoint.fitcustomizer;
 
 import com.garmin.fit.Fit;
 import com.garmin.fit.LengthMesg;
-import com.garmin.fit.LapMesg;
 import com.garmin.fit.SwimStroke;
 import com.garmin.fit.LengthType;
 
@@ -39,12 +38,6 @@ import org.jline.utils.InfoCmp.Capability;
 import org.jline.utils.AttributedStringBuilder;
 import org.jline.utils.AttributedStyle;
 
-import ca.disjoint.fitcustomizer.Utils;
-import ca.disjoint.fitcustomizer.GarminActivityLoader;
-import ca.disjoint.fitcustomizer.FitWriter;
-import ca.disjoint.fitcustomizer.GarminSwimActivity;
-import ca.disjoint.fitcustomizer.GarminLap;
-
 @Command(name = "SwimEditor.jar", mixinStandardHelpOptions = true, versionProvider = SwimEditor.PropertiesVersionProvider.class, description = "Edit Garmin swim .fit files to add heartrate data, correct strokes, and more.")
 public class SwimEditor implements Callable<Integer> {
     @Option(names = { "-v",
@@ -71,7 +64,8 @@ public class SwimEditor implements Callable<Integer> {
     private GarminSwimActivity garminSwimActivity;
     private LineReader reader;
 
-    public SwimEditor(InputStream input, OutputStream output, Terminal terminal, String[] args) {
+    public SwimEditor(final InputStream input, final OutputStream output, final Terminal terminal,
+            final String[] args) {
         this.input = input;
         this.output = output;
         this.cliArgs = args;
@@ -79,6 +73,7 @@ public class SwimEditor implements Callable<Integer> {
         reader = LineReaderBuilder.builder().terminal(terminal).build();
     }
 
+    @SuppressWarnings("checkstyle:DesignForExtension")
     public Integer call() {
         if (verbose) {
             Configurator.setRootLevel(Level.DEBUG);
@@ -126,7 +121,7 @@ public class SwimEditor implements Callable<Integer> {
         return 0;
     }
 
-    public static void main(String[] args) throws IOException {
+    public static void main(final String[] args) throws IOException {
         Terminal term = TerminalBuilder.builder().system(true).signalHandler(Terminal.SignalHandler.SIG_IGN).build();
 
         SwimEditor swm = new SwimEditor(System.in, System.out, term, args);
@@ -134,6 +129,7 @@ public class SwimEditor implements Callable<Integer> {
         System.exit(exitCode);
     }
 
+    @SuppressWarnings("checkstyle:DesignForExtension")
     public int start() {
         return new CommandLine(this).execute(cliArgs);
     }
@@ -159,7 +155,7 @@ public class SwimEditor implements Callable<Integer> {
         }
     }
 
-    private void editSwimLap(int lapNumber) {
+    private void editSwimLap(final int lapNumber) {
         GarminLap lap = garminSwimActivity.getGarminLap(lapNumber);
         List<LengthMesg> lengths = lap.getLengthMessages();
         LineReader lineReader = LineReaderBuilder.builder().terminal(terminal)
@@ -175,7 +171,7 @@ public class SwimEditor implements Callable<Integer> {
 
             float lengthAvgSpeed = 0f;
             if (length.getAvgSpeed() != null) {
-                lengthAvgSpeed = 100 / length.getAvgSpeed();
+                lengthAvgSpeed = Utils.PACE_PER_HUNDRED_METERS / length.getAvgSpeed();
             }
 
             String prompt = new AttributedStringBuilder()
@@ -275,7 +271,7 @@ public class SwimEditor implements Callable<Integer> {
         return lapNumber;
     }
 
-    private boolean validateLapNumberInput(int input) {
+    private boolean validateLapNumberInput(final int input) {
         boolean result = false;
         LOGGER.log(Level.DEBUG, "Validating whether " + input + " is in the active laps list");
         List<Integer> activeLaps = garminSwimActivity.getActiveSwimLaps();
@@ -284,7 +280,7 @@ public class SwimEditor implements Callable<Integer> {
         return result;
     }
 
-    private float readPoolLength(float currentPoolLength) {
+    private float readPoolLength(final float currentPoolLength) {
         LOGGER.log(Level.DEBUG, "Presenting prompt to read swimming pool length");
 
         String prompt = new AttributedStringBuilder().style(AttributedStyle.BOLD.foreground(AttributedStyle.GREEN))
@@ -324,6 +320,7 @@ public class SwimEditor implements Callable<Integer> {
         return poolLength;
     }
 
+    @SuppressWarnings("checkstyle:MagicNumber")
     static class PropertiesVersionProvider implements IVersionProvider {
         public String[] getVersion() throws Exception {
             URL url = getClass().getResource("/META-INF/application.properties");

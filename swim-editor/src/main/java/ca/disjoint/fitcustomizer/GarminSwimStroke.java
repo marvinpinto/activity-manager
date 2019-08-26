@@ -7,16 +7,18 @@ public enum GarminSwimStroke {
             SwimStroke.BUTTERFLY.getValue()), DR(SwimStroke.DRILL.getValue()), FR(SwimStroke.FREESTYLE.getValue()), IM(
                     SwimStroke.IM.getValue()), INV(SwimStroke.INVALID.getValue()), MIX(SwimStroke.MIXED.getValue());
 
+    @SuppressWarnings("checkstyle:VisibilityModifier")
     public short value;
 
-    private GarminSwimStroke(short value) {
+    GarminSwimStroke(final short value) {
         this.value = value;
     }
 
     public static GarminSwimStroke getByValue(final Short value) {
         for (final GarminSwimStroke type : GarminSwimStroke.values()) {
-            if (value == type.value)
+            if (value == type.value) {
                 return type;
+            }
         }
 
         return GarminSwimStroke.INV;
