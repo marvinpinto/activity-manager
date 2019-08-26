@@ -29,6 +29,11 @@ public final class Utils {
         throw new UnsupportedOperationException();
     }
 
+    public static boolean checkFitFileIntegrity(final String file) throws FileNotFoundException, IOException {
+        File f = new File(file);
+        return checkFitFileIntegrity(f);
+    }
+
     public static boolean checkFitFileIntegrity(final File file) throws FileNotFoundException, IOException {
         Decode decode = new Decode();
 

@@ -103,6 +103,16 @@ public class SwimEditor implements Callable<Integer> {
 
             terminal.writer().append(garminSwimActivity.getActivitySummaryHeader());
             terminal.writer().append(garminSwimActivity.getActivitySummary());
+
+            FitWriter fr = new FitWriter(garminSwimActivity, swimmingFitFile.getName());
+            String updatedFitFileName = fr.writeFitFile();
+            AttributedStringBuilder asb = new AttributedStringBuilder();
+            asb.style(AttributedStyle.DEFAULT.foreground(AttributedStyle.GREEN));
+            asb.append(String.format("Editing complete - new FIT file available at: "));
+            asb.style(AttributedStyle.BOLD.foreground(AttributedStyle.CYAN));
+            asb.append(String.format(updatedFitFileName));
+            asb.append(System.lineSeparator());
+            terminal.writer().append(asb.toAnsi());
             terminal.flush();
         } catch (Exception ex) {
             String exceptionMsg = ex.getMessage();

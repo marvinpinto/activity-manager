@@ -3,7 +3,6 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import org.junit.Test;
-import org.junit.Before;
 import org.junit.After;
 import static org.hamcrest.CoreMatchers.equalTo;
 
@@ -12,7 +11,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
-import ca.disjoint.fitcustomizer.GarminActivity;
 import ca.disjoint.fitcustomizer.GarminSwimActivity;
 import ca.disjoint.fitcustomizer.GarminActivityLoader;
 
@@ -21,10 +19,11 @@ import com.garmin.fit.SubSport;
 
 import org.jline.utils.AttributedString;
 
+@SuppressWarnings("checkstyle:MagicNumber")
 public class GarminSwimActivityTest {
     private GarminSwimActivity activity;
 
-    private void setUpSwimData(String filename) {
+    private void setUpSwimData(final String filename) {
         try {
             URL url = this.getClass().getResource(filename);
             File swimFitFile = new File(url.getFile());

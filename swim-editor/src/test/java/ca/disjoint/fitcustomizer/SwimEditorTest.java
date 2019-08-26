@@ -4,7 +4,6 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 import org.junit.Before;
 import org.junit.After;
-import org.junit.Ignore;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.startsWith;
@@ -18,6 +17,7 @@ import java.io.PrintStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.IOException;
+import java.io.File;
 
 import picocli.CommandLine;
 
@@ -26,10 +26,19 @@ import org.jline.terminal.Terminal;
 import org.jline.terminal.impl.DumbTerminal;
 
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.PathMatcher;
+import java.nio.file.FileVisitor;
+import java.nio.file.FileVisitResult;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 
 import ca.disjoint.fitcustomizer.SwimEditor;
 import ca.disjoint.fitcustomizer.TestUtils;
 
+@SuppressWarnings("checkstyle:MagicNumber")
 public class SwimEditorTest {
     private SwimEditor inst;
     private ByteArrayInputStream inContent = null;
@@ -48,7 +57,7 @@ public class SwimEditorTest {
         terminal = getCustomizedTerminal(inContent, outContent);
     }
 
-    private Terminal getCustomizedTerminal(InputStream inContent, OutputStream outContent) {
+    private Terminal getCustomizedTerminal(final InputStream inContent, final OutputStream outContent) {
         Terminal t = null;
         try {
             t = new DumbTerminal("terminal", "ansi", inContent, outContent, StandardCharsets.UTF_8);
@@ -59,12 +68,30 @@ public class SwimEditorTest {
     }
 
     @After
-    public void tearDown() {
+    public void tearDown() throws IOException {
         inst = null;
         System.setIn(originalIn);
         System.setOut(originalOut);
         System.setErr(originalErr);
         terminal = null;
+
+        // Delete all the remnant *.fit files generated in test mode
+        PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:*.fit");
+        FileVisitor<Path> matcherVisitor = new SimpleFileVisitor<Path>() {
+            @Override
+            public FileVisitResult visitFile(final Path file, final BasicFileAttributes attribs) {
+                Path name = file.getFileName();
+                if (matcher.matches(name)) {
+                    File f = new File(name.toString());
+                    f.delete();
+                }
+                return FileVisitResult.CONTINUE;
+            }
+        };
+        Files.walkFileTree(
+                FileSystems.getDefault().getPath(
+                        System.getProperty("java.io.tmpdir") + FileSystems.getDefault().getSeparator() + "maven-tests"),
+                matcherVisitor);
     }
 
     @Test
@@ -244,5 +271,20 @@ public class SwimEditorTest {
         assertThat(exitCode, equalTo(CommandLine.ExitCode.OK));
         boolean matches = TestUtils.doesRegexPatternMatch(".*Strokes:.*FR,BR,BR,BR,BR,BR.*", plainOutput);
         assertTrue("Output did not contain \"Strokes: FR,BR,BR,BR,BR,BR\" - output: " + plainOutput, matches);
+    }
+
+    @Test
+    public void shouldCreateUpdatedFitFile() {
+        String actualCreationTime = "Wed Jul 04 07:40:39 EDT 2018";
+        URL url = this.getClass().getResource("/basic-swim.fit");
+        String[] args = { "--no-randomize-ctime", url.getFile() };
+        inst = new SwimEditor(inContent, outContent, terminal, args);
+        int exitCode = inst.start();
+        assertThat(exitCode, equalTo(CommandLine.ExitCode.OK));
+
+        String filepath = System.getProperty("java.io.tmpdir") + FileSystems.getDefault().getSeparator()
+                + "maven-tests/basic-swim-899638839.fit";
+        File updatedFitFile = new File(filepath);
+        assertTrue("Updated fit file " + filepath + " did not get created", updatedFitFile.exists());
     }
 }
