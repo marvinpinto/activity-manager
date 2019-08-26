@@ -264,6 +264,28 @@
         </configuration>
       </plugin>
 
+      <plugin>
+        <artifactId>maven-clean-plugin</artifactId>
+        <version>3.1.0</version>
+        <configuration>
+          <filesets>
+            <fileset>
+              <directory>${java.io.tmpdir}/maven-tests</directory>
+              <followSymlinks>false</followSymlinks>
+            </fileset>
+            <fileset>
+              <directory>${basedir}</directory>
+              <includes>
+                <include>application.log</include>
+                <include>swim-editor/application.log</include>
+                <include>*.fit</include>
+              </includes>
+              <followSymlinks>false</followSymlinks>
+            </fileset>
+          </filesets>
+        </configuration>
+      </plugin>
+
     </plugins>
   </build>
 </project>
