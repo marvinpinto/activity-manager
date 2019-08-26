@@ -63,6 +63,14 @@
           <encoding>UTF-8</encoding>
           <lineEnding>LF</lineEnding>
         </configuration>
+        <executions>
+          <execution>
+            <phase>verify</phase>
+            <goals>
+              <goal>validate</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
       <plugin>
         <groupId>org.jacoco</groupId>
