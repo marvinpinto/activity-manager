@@ -13,7 +13,7 @@ import com.garmin.fit.LengthMesg;
 import com.garmin.fit.RecordMesg;
 import com.garmin.fit.EventMesg;
 import com.garmin.fit.DeviceInfoMesg;
-import com.garmin.fit.HrvMesg;
+import com.garmin.fit.HrMesg;
 import com.garmin.fit.Sport;
 import com.garmin.fit.SubSport;
 import com.garmin.fit.Manufacturer;
@@ -35,14 +35,14 @@ public abstract class GarminActivity {
     private List<RecordMesg> recordMessages;
     private List<EventMesg> eventMessages;
     private List<DeviceInfoMesg> deviceInfoMessages;
-    private List<HrvMesg> hrvMessages;
+    private List<HrMesg> hrMessages;
 
     public GarminActivity() {
         garminLaps = new ArrayList<GarminLap>();
         recordMessages = new ArrayList<RecordMesg>();
         eventMessages = new ArrayList<EventMesg>();
         deviceInfoMessages = new ArrayList<DeviceInfoMesg>();
-        hrvMessages = new ArrayList<HrvMesg>();
+        hrMessages = new ArrayList<HrMesg>();
     }
 
     public final String getActivitySummaryHeader() {
@@ -150,13 +150,13 @@ public abstract class GarminActivity {
         return deviceInfoMessages;
     }
 
-    public final void addHrvMessage(final HrvMesg mesg) {
+    public final void addHrMessage(final HrMesg mesg) {
         Utils.logFitMessage(mesg);
-        hrvMessages.add(mesg);
+        hrMessages.add(mesg);
     }
 
-    public final List<HrvMesg> getHrvMessages() {
-        return hrvMessages;
+    public final List<HrMesg> getHrMessages() {
+        return hrMessages;
     }
 
     public final Sport getSport() {

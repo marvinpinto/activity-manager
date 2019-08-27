@@ -13,6 +13,7 @@ import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.time.ZoneId;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 
 import com.garmin.fit.Decode;
 import com.garmin.fit.Mesg;
@@ -97,6 +98,13 @@ public final class Utils {
                 // Attempt to invoke the getter on the casted object
                 Method getter = classType.getDeclaredMethod(fn);
                 Object output = getter.invoke(mesg);
+
+                // Convert the array output into something printable
+                if (output.getClass().isArray()) {
+                    Object[] arrOutput = (Object[]) output;
+                    output = Arrays.toString(arrOutput);
+                }
+
                 LOGGER.log(Level.DEBUG, String.format("    %s: %s", fn, output));
             } catch (Exception ex) {
                 LOGGER.log(Level.TRACE, "Getter method name " + fn + " for field " + f.getName()

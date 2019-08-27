@@ -29,6 +29,8 @@ import com.garmin.fit.Decode;
 import com.garmin.fit.MesgBroadcaster;
 import com.garmin.fit.RecordMesgListener;
 import com.garmin.fit.RecordMesg;
+import com.garmin.fit.HrMesg;
+import com.garmin.fit.HrMesgListener;
 
 public class GarminActivityLoader {
     private static final Logger LOGGER = LogManager.getLogger(GarminActivityLoader.class);
@@ -60,6 +62,7 @@ public class GarminActivityLoader {
         mesgBroadcaster.addListener((EventMesgListener) reader);
         mesgBroadcaster.addListener((DeviceInfoMesgListener) reader);
         mesgBroadcaster.addListener((RecordMesgListener) reader);
+        mesgBroadcaster.addListener((HrMesgListener) reader);
 
         LOGGER.log(Level.DEBUG, "Decoding FIT file");
         boolean status = decode.read(in, mesgBroadcaster, mesgBroadcaster);
@@ -70,7 +73,7 @@ public class GarminActivityLoader {
     }
 
     private class DataReader implements FileIdMesgListener, LapMesgListener, LengthMesgListener, SessionMesgListener,
-            ActivityMesgListener, EventMesgListener, DeviceInfoMesgListener, RecordMesgListener {
+            ActivityMesgListener, EventMesgListener, DeviceInfoMesgListener, RecordMesgListener, HrMesgListener {
 
         @Override
         public void onMesg(final RecordMesg mesg) {
@@ -113,6 +116,11 @@ public class GarminActivityLoader {
         @Override
         public void onMesg(final FileIdMesg mesg) {
             garminActivity.setFileIdMesg(mesg);
+        }
+
+        @Override
+        public void onMesg(final HrMesg mesg) {
+            garminActivity.addHrMessage(mesg);
         }
     }
 }
