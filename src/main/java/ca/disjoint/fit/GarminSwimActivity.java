@@ -1,4 +1,4 @@
-package ca.disjoint.fitcustomizer;
+package ca.disjoint.fit;
 
 import java.util.List;
 import java.util.Iterator;

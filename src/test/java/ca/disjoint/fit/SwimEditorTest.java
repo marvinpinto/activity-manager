@@ -1,6 +1,7 @@
 import static org.junit.Assert.fail;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
 import org.junit.Test;
 import org.junit.Before;
 import org.junit.After;
@@ -26,17 +27,10 @@ import org.jline.terminal.Terminal;
 import org.jline.terminal.impl.DumbTerminal;
 
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
 import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.PathMatcher;
-import java.nio.file.FileVisitor;
-import java.nio.file.FileVisitResult;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
 
-import ca.disjoint.fitcustomizer.SwimEditor;
-import ca.disjoint.fitcustomizer.TestUtils;
+import ca.disjoint.fit.SwimEditor;
+import ca.disjoint.fit.TestUtils;
 
 @SuppressWarnings("checkstyle:MagicNumber")
 public class SwimEditorTest {
@@ -74,24 +68,28 @@ public class SwimEditorTest {
         System.setOut(originalOut);
         System.setErr(originalErr);
         terminal = null;
+        TestUtils.deleteAllTestGeneratedFitFiles();
+    }
 
-        // Delete all the remnant *.fit files generated in test mode
-        PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:*.fit");
-        FileVisitor<Path> matcherVisitor = new SimpleFileVisitor<Path>() {
-            @Override
-            public FileVisitResult visitFile(final Path file, final BasicFileAttributes attribs) {
-                Path name = file.getFileName();
-                if (matcher.matches(name)) {
-                    File f = new File(name.toString());
-                    f.delete();
-                }
-                return FileVisitResult.CONTINUE;
-            }
-        };
-        Files.walkFileTree(
-                FileSystems.getDefault().getPath(
-                        System.getProperty("java.io.tmpdir") + FileSystems.getDefault().getSeparator() + "maven-tests"),
-                matcherVisitor);
+    @Test
+    public void shouldFailIfInvalidArgSupplied() {
+        URL url = this.getClass().getResource("/basic-swim.fit");
+        String[] args = { url.getFile(), "--asdfasdfasdfasf" };
+        inst = new SwimEditor(inContent, outContent, terminal, args);
+        int exitCode = inst.start();
+
+        assertThat(exitCode, equalTo(CommandLine.ExitCode.USAGE));
+        assertThat(errContent.toString(), startsWith("Unknown option: '--asdfasdfasdfasf'"));
+    }
+
+    @Test
+    public void shouldFailWithCorrectExitCodeWhenProgramFails() {
+        String[] args = { "FILEDOESNOTEXIST" };
+        inst = new SwimEditor(inContent, outContent, terminal, args);
+        int exitCode = inst.start();
+
+        assertThat(exitCode, equalTo(CommandLine.ExitCode.SOFTWARE));
+        assertThat(errContent.toString(), startsWith("Error: FILEDOESNOTEXIST (No such file or directory)"));
     }
 
     @Test
@@ -118,37 +116,6 @@ public class SwimEditorTest {
     }
 
     @Test
-    public void shouldFailIfInvalidArgSupplied() {
-        URL url = this.getClass().getResource("/basic-swim.fit");
-        String[] args = { url.getFile(), "--asdfasdfasdfasf" };
-        inst = new SwimEditor(inContent, outContent, terminal, args);
-        int exitCode = inst.start();
-
-        assertThat(exitCode, equalTo(CommandLine.ExitCode.USAGE));
-        assertThat(errContent.toString(), startsWith("Unknown option: '--asdfasdfasdfasf'"));
-    }
-
-    @Test
-    public void shouldFailWithCorrectExitCodeWhenProgramFails() {
-        String[] args = { "FILEDOESNOTEXIST" };
-        inst = new SwimEditor(inContent, outContent, terminal, args);
-        int exitCode = inst.start();
-
-        assertThat(exitCode, equalTo(CommandLine.ExitCode.SOFTWARE));
-        assertThat(errContent.toString(), startsWith("Error: FILEDOESNOTEXIST (No such file or directory)"));
-    }
-
-    @Test
-    public void shouldPrintVersionWhenRequested() {
-        String[] args = { "--version" };
-        inst = new SwimEditor(inContent, outContent, terminal, args);
-        int exitCode = inst.start();
-
-        assertThat(exitCode, equalTo(CommandLine.ExitCode.OK));
-        assertThat(outContent.toString(), startsWith("SwimEditor.jar v"));
-    }
-
-    @Test
     public void shouldRandomizeCreationTimeByDefault() {
         String actualCreationTime = "Wed Jul 04 07:40:39 EDT 2018";
         URL url = this.getClass().getResource("/basic-swim.fit");
@@ -164,7 +131,7 @@ public class SwimEditorTest {
     }
 
     @Test
-    public void shouldNotRandomizeCreationTimeWhenRequested() {
+    public void shouldNotRandomizeCreationTimeWhenSpecified() {
         String actualCreationTime = "Wed Jul 04 07:40:39 EDT 2018";
         URL url = this.getClass().getResource("/basic-swim.fit");
         String[] args = { "--no-randomize-ctime", url.getFile() };
@@ -310,5 +277,20 @@ public class SwimEditorTest {
                 + "maven-tests/basic-swim-899638839.fit";
         File updatedFitFile = new File(filepath);
         assertTrue("Updated fit file " + filepath + " did not get created", updatedFitFile.exists());
+    }
+
+    @Test
+    public void shouldNotCreateUpdatedFitFile() throws IOException, InterruptedException {
+        URL url = this.getClass().getResource("/basic-swim.fit");
+        String[] args = { "--no-randomize-ctime", "--verbose", url.getFile() };
+
+        inst = new SwimEditor(inContent, outContent, terminal, args);
+        int exitCode = inst.start();
+        assertThat(exitCode, equalTo(CommandLine.ExitCode.OK));
+
+        String filepath = System.getProperty("java.io.tmpdir") + FileSystems.getDefault().getSeparator()
+                + "maven-tests/basic-swim-899638839.fit";
+        File updatedFitFile = new File(filepath);
+        assertFalse("Updated fit file " + filepath + " incorrectly get created", updatedFitFile.exists());
     }
 }

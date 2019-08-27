@@ -11,8 +11,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
-import ca.disjoint.fitcustomizer.GarminSwimActivity;
-import ca.disjoint.fitcustomizer.GarminActivityLoader;
+import ca.disjoint.fit.GarminSwimActivity;
+import ca.disjoint.fit.GarminActivityLoader;
 
 import com.garmin.fit.Sport;
 import com.garmin.fit.SubSport;

@@ -1,4 +1,4 @@
-package ca.disjoint.fitcustomizer;
+package ca.disjoint.fit;
 
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.Level;

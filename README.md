@@ -11,7 +11,7 @@ from doing so.
 
 ### Development
 - `mvn clean package`
-- `java -cp fit.jar:swim-editor/target/swim-editor-1.0-SNAPSHOT-jar-with-dependencies.jar ca.disjoint.fitcustomizer.SwimEditor`
+- `java -cp fit.jar:target/fit-editor-1.0-SNAPSHOT-jar-with-dependencies.jar ca.disjoint.fit.FitEditor`
 - `mvn formatter:format`
 - `mvn test`
 - `mvn clean verify`

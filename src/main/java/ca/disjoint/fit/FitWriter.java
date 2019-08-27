@@ -1,4 +1,4 @@
-package ca.disjoint.fitcustomizer;
+package ca.disjoint.fit;
 
 import java.io.File;
 import java.io.FileOutputStream;
