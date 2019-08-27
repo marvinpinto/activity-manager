@@ -3,7 +3,6 @@ package ca.disjoint.fit;
 import com.garmin.fit.Fit;
 
 import picocli.CommandLine;
-import picocli.CommandLine.Mixin;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.IVersionProvider;
 import picocli.CommandLine.HelpCommand;
@@ -20,8 +19,6 @@ import java.io.OutputStream;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.Level;
-import org.apache.logging.log4j.core.config.Configurator;
 
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
@@ -50,9 +47,6 @@ public class FitEditor implements Callable<Integer> {
     @Spec
     private CommandSpec spec;
 
-    @Mixin
-    private ReusableOptions reusableOptionsMixin;
-
     @SuppressWarnings("checkstyle:DesignForExtension")
     public Integer call() {
         throw new ParameterException(spec.commandLine(), "Missing required subcommand");
@@ -60,7 +54,6 @@ public class FitEditor implements Callable<Integer> {
 
     public static void main(final String[] args) throws IOException {
         Terminal term = TerminalBuilder.builder().system(true).signalHandler(Terminal.SignalHandler.SIG_IGN).build();
-
         FitEditor fiteditor = new FitEditor(System.in, System.out, term, args);
         int exitCode = fiteditor.start();
         System.exit(exitCode);
@@ -70,15 +63,6 @@ public class FitEditor implements Callable<Integer> {
     public int start() {
         CommandLine cli = new CommandLine(this);
         cli.addSubcommand(new SwimEditor(input, output, terminal, cliArgs));
-
-        if (reusableOptionsMixin.getVerbosity().length == 1) {
-            Configurator.setRootLevel(Level.DEBUG);
-            LOGGER.log(Level.INFO, "DEBUG logging enabled");
-        } else if (reusableOptionsMixin.getVerbosity().length >= 2) {
-            Configurator.setRootLevel(Level.TRACE);
-            LOGGER.log(Level.INFO, "TRACE logging enabled");
-        }
-
         return cli.execute(cliArgs);
     }
 

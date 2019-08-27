@@ -98,7 +98,7 @@ public class FitEditorTest {
         int exitCode = inst.start();
 
         assertThat(exitCode, equalTo(CommandLine.ExitCode.OK));
-        assertThat(outContent.toString(), startsWith("Usage: fit [-hVv] COMMAND"));
+        assertThat(outContent.toString(), startsWith("Usage: fit [-hV] COMMAND"));
     }
 
     @Test

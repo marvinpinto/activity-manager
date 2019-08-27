@@ -68,6 +68,8 @@ public class SwimEditor implements Callable<Integer> {
 
     @SuppressWarnings("checkstyle:DesignForExtension")
     public Integer call() {
+        Utils.setLogLevel(reusableOptionsMixin);
+
         try {
             float poolLength = 0f;
             String updatedFitFileName = "";

@@ -3,6 +3,7 @@ package ca.disjoint.fit;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.core.config.Configurator;
 
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -111,6 +112,19 @@ public final class Utils {
                         + "appears to be incorrect, moving on.");
             }
 
+        }
+    }
+
+    public static void setLogLevel(final ReusableOptions mixin) {
+        if (mixin.getVerbosity().length == 1) {
+            Configurator.setRootLevel(Level.DEBUG);
+            LOGGER.log(Level.INFO, "DEBUG logging enabled");
+        } else if (mixin.getVerbosity().length >= 2) {
+            Configurator.setRootLevel(Level.TRACE);
+            LOGGER.log(Level.INFO, "TRACE logging enabled");
+        } else {
+            Configurator.setRootLevel(Level.WARN);
+            LOGGER.log(Level.INFO, "WARN logging enabled");
         }
     }
 }
