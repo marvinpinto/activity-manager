@@ -63,6 +63,7 @@ public class FitEditor implements Callable<Integer> {
     public int start() {
         CommandLine cli = new CommandLine(this);
         cli.addSubcommand(new SwimEditor(input, output, terminal, cliArgs));
+        cli.addSubcommand(new FitDumper(input, output, terminal, cliArgs));
         return cli.execute(cliArgs);
     }
 

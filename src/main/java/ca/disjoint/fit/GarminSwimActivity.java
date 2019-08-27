@@ -22,6 +22,7 @@ public final class GarminSwimActivity extends GarminActivity {
     private static final Logger LOGGER = LogManager.getLogger(GarminSwimActivity.class);
 
     public GarminSwimActivity() {
+        super();
     }
 
     public float getPoolLength() {

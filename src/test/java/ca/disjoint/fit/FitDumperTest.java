@@ -6,6 +6,7 @@ import org.junit.After;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.startsWith;
 
+import java.net.URL;
 import java.io.ByteArrayOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.PrintStream;
@@ -15,16 +16,18 @@ import java.io.IOException;
 
 import picocli.CommandLine;
 
+import org.jline.utils.AttributedString;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.impl.DumbTerminal;
 
 import java.nio.charset.StandardCharsets;
 
-import ca.disjoint.fit.FitEditor;
+import ca.disjoint.fit.FitDumper;
 import ca.disjoint.fit.TestUtils;
 
-public class FitEditorTest {
-    private FitEditor inst;
+@SuppressWarnings("checkstyle:MagicNumber")
+public class FitDumperTest {
+    private FitDumper inst;
     private ByteArrayInputStream inContent = null;
     private final ByteArrayOutputStream outContent = new ByteArrayOutputStream();
     private final ByteArrayOutputStream errContent = new ByteArrayOutputStream();
@@ -62,49 +65,9 @@ public class FitEditorTest {
     }
 
     @Test
-    public void shouldPrintVersionWhenRequested() {
-        String[] args = { "--version" };
-        inst = new FitEditor(inContent, outContent, terminal, args);
-        int exitCode = inst.start();
-
-        assertThat(exitCode, equalTo(CommandLine.ExitCode.OK));
-        assertThat(outContent.toString(), startsWith("FitEditor v"));
-    }
-
-    @Test
-    public void shouldFailIfNoSubcommandProvided() {
+    public void shouldFailIfNoFitFileProvided() {
         String[] args = {};
-        inst = new FitEditor(inContent, outContent, terminal, args);
-        int exitCode = inst.start();
-
-        assertThat(exitCode, equalTo(CommandLine.ExitCode.USAGE));
-        assertThat(errContent.toString(), startsWith("Missing required subcommand"));
-    }
-
-    @Test
-    public void shouldFailIfInvalidArgSupplied() {
-        String[] args = { "--asdfasdfasdfasf" };
-        inst = new FitEditor(inContent, outContent, terminal, args);
-        int exitCode = inst.start();
-
-        assertThat(exitCode, equalTo(CommandLine.ExitCode.USAGE));
-        assertThat(errContent.toString(), startsWith("Unknown option: '--asdfasdfasdfasf'"));
-    }
-
-    @Test
-    public void shouldInvokeHelpSubcommand() {
-        String[] args = { "help" };
-        inst = new FitEditor(inContent, outContent, terminal, args);
-        int exitCode = inst.start();
-
-        assertThat(exitCode, equalTo(CommandLine.ExitCode.OK));
-        assertThat(outContent.toString(), startsWith("Usage: fit [-hV] COMMAND"));
-    }
-
-    @Test
-    public void shouldInvokeSwimSubcommand() {
-        String[] args = { "swim" };
-        inst = new FitEditor(inContent, outContent, terminal, args);
+        inst = new FitDumper(inContent, outContent, terminal, args);
         int exitCode = inst.start();
 
         assertThat(exitCode, equalTo(CommandLine.ExitCode.USAGE));
@@ -112,12 +75,35 @@ public class FitEditorTest {
     }
 
     @Test
-    public void shouldInvokeDumpSubcommand() {
-        String[] args = { "dump" };
-        inst = new FitEditor(inContent, outContent, terminal, args);
+    public void shouldFailIfVerboseModeNotEnabled() {
+        URL url = this.getClass().getResource("/1_2700_sample-run.fit");
+        String[] args = { url.getFile() };
+        inst = new FitDumper(inContent, outContent, terminal, args);
         int exitCode = inst.start();
 
         assertThat(exitCode, equalTo(CommandLine.ExitCode.USAGE));
-        assertThat(errContent.toString(), startsWith("Missing required parameter: FILE"));
+        assertThat(errContent.toString(),
+                startsWith("Verbose mode needs to be enabled in order for this command to work."));
+    }
+
+    @Test
+    public void shouldFailWithCorrectExitCodeWhenProgramFails() {
+        String[] args = { "-v", "FILEDOESNOTEXIST" };
+        inst = new FitDumper(inContent, outContent, terminal, args);
+        int exitCode = inst.start();
+
+        assertThat(exitCode, equalTo(CommandLine.ExitCode.SOFTWARE));
+        assertThat(errContent.toString(), startsWith("Error: FILEDOESNOTEXIST (No such file or directory)"));
+    }
+
+    @Test
+    public void shouldProcessRunData() {
+        URL url = this.getClass().getResource("/1_2700_sample-run.fit");
+        String[] args = { "-v", url.getFile() };
+        inst = new FitDumper(inContent, outContent, terminal, args);
+        int exitCode = inst.start();
+
+        String plainOutput = AttributedString.stripAnsi(outContent.toString());
+        assertThat(plainOutput, startsWith("Generic activity loaded successfully, see log file for details."));
     }
 }
