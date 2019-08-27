@@ -291,7 +291,7 @@ public final class GarminSwimActivity extends GarminActivity {
     }
 
     public List<Integer> getActiveSwimLaps() {
-        List<Integer> activeSwimLaps = new ArrayList();
+        List<Integer> activeSwimLaps = new ArrayList<Integer>();
         List<GarminLap> garminLaps = getGarminLaps();
 
         for (int i = 0; i < garminLaps.size(); i++) {

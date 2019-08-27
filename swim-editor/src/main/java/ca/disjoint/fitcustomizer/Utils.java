@@ -18,7 +18,7 @@ import com.garmin.fit.Decode;
 import com.garmin.fit.Mesg;
 import com.garmin.fit.Field;
 
-import org.apache.commons.lang3.text.WordUtils;
+import org.apache.commons.text.WordUtils;
 
 public final class Utils {
     private static final Logger LOGGER = LogManager.getLogger(Utils.class);

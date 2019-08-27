@@ -32,7 +32,7 @@ public final class FitWriter {
 
     public String writeFitFile() throws FileNotFoundException, IOException {
         BufferEncoder fitFile = new BufferEncoder(Fit.ProtocolVersion.V2_0);
-        List<Mesg> sortedMsgList = new ArrayList();
+        List<Mesg> sortedMsgList = new ArrayList<Mesg>();
         String newFilename = getNewFileName();
 
         // File ID message
@@ -69,7 +69,7 @@ public final class FitWriter {
         sortedMsgList.add(garminActivity.getSessionMesg());
 
         // Sort all the messages according to their timestamp
-        sortedMsgList.sort(new GarminDateTimeComparator());
+        sortedMsgList.sort(new GarminDateTimeComparator<Mesg>());
 
         LOGGER.log(Level.DEBUG, "=========== Debug logging sorted messages ===========");
         for (Mesg m : sortedMsgList) {
