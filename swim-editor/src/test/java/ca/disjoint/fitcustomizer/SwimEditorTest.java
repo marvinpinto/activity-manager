@@ -274,14 +274,38 @@ public class SwimEditorTest {
     }
 
     @Test
-    public void shouldCreateUpdatedFitFile() {
-        String actualCreationTime = "Wed Jul 04 07:40:39 EDT 2018";
+    public void shouldCreateUpdatedFitFile() throws IOException, InterruptedException {
+        StringBuilder sb = new StringBuilder();
         URL url = this.getClass().getResource("/basic-swim.fit");
-        String[] args = { "--no-randomize-ctime", url.getFile() };
-        inst = new SwimEditor(inContent, outContent, terminal, args);
-        int exitCode = inst.start();
-        assertThat(exitCode, equalTo(CommandLine.ExitCode.OK));
+        String[] args = { "--no-randomize-ctime", "--verbose", "--edit", url.getFile() };
 
+        PipedInputStream pin = new PipedInputStream();
+        PipedOutputStream pout = new PipedOutputStream();
+        pout.connect(pin);
+        terminal = getCustomizedTerminal(pin, outContent);
+
+        Thread th = new Thread() {
+            public void run() {
+                try {
+                    Thread.sleep(10);
+                    // Enter to accept the preset pool length of 22.86
+                    sb.append("\n");
+                    // Enter -1 to simulate ctrl+d, to signal we don't wish to edit any more laps
+                    sb.append("-1\n");
+                    pout.write(sb.toString().getBytes());
+                    pout.flush();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+        th.start();
+
+        inst = new SwimEditor(pin, outContent, terminal, args);
+        int exitCode = inst.start();
+        th.join();
+
+        assertThat(exitCode, equalTo(CommandLine.ExitCode.OK));
         String filepath = System.getProperty("java.io.tmpdir") + FileSystems.getDefault().getSeparator()
                 + "maven-tests/basic-swim-899638839.fit";
         File updatedFitFile = new File(filepath);
