@@ -291,6 +291,64 @@ public class SwimEditorTest {
         String filepath = System.getProperty("java.io.tmpdir") + FileSystems.getDefault().getSeparator()
                 + "maven-tests/basic-swim-899638839.fit";
         File updatedFitFile = new File(filepath);
-        assertFalse("Updated fit file " + filepath + " incorrectly get created", updatedFitFile.exists());
+        assertFalse("Updated fit file " + filepath + " incorrectly got created", updatedFitFile.exists());
+    }
+
+    @Test
+    public void shouldAddHrDataToSwimActivityWithoutEditing() throws IOException, InterruptedException {
+        URL swimActivity = this.getClass().getResource("/1_2700_20190621-swim.fit");
+        URL hrActivity = this.getClass().getResource("/1_2347_20190621-hr.fit");
+        String[] args = { "--no-randomize-ctime", "--verbose", "--hr-data", hrActivity.getFile(),
+                swimActivity.getFile() };
+
+        inst = new SwimEditor(inContent, outContent, terminal, args);
+        int exitCode = inst.start();
+        assertThat(exitCode, equalTo(CommandLine.ExitCode.OK));
+
+        String filepath = System.getProperty("java.io.tmpdir") + FileSystems.getDefault().getSeparator()
+                + "maven-tests/1_2700_20190621-swim-930049297.fit";
+        File updatedFitFile = new File(filepath);
+        assertTrue("Updated fit file " + filepath + " did not get created", updatedFitFile.exists());
+    }
+
+    @Test
+    public void shouldAddHrDataToSwimActivity() throws IOException, InterruptedException {
+        StringBuilder sb = new StringBuilder();
+        URL swimActivity = this.getClass().getResource("/1_2700_20190621-swim.fit");
+        URL hrActivity = this.getClass().getResource("/1_2347_20190621-hr.fit");
+        String[] args = { "--no-randomize-ctime", "--edit", "--verbose", "--hr-data", hrActivity.getFile(),
+                swimActivity.getFile() };
+
+        PipedInputStream pin = new PipedInputStream();
+        PipedOutputStream pout = new PipedOutputStream();
+        pout.connect(pin);
+        terminal = getCustomizedTerminal(pin, outContent);
+
+        Thread th = new Thread() {
+            public void run() {
+                try {
+                    Thread.sleep(10);
+                    // Enter to accept the preset pool length
+                    sb.append("\n");
+                    // Enter -1 to simulate ctrl+d, to signal we don't wish to edit any more laps
+                    sb.append("-1\n");
+                    pout.write(sb.toString().getBytes());
+                    pout.flush();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+        th.start();
+
+        inst = new SwimEditor(pin, outContent, terminal, args);
+        int exitCode = inst.start();
+        th.join();
+        assertThat(exitCode, equalTo(CommandLine.ExitCode.OK));
+
+        String filepath = System.getProperty("java.io.tmpdir") + FileSystems.getDefault().getSeparator()
+                + "maven-tests/1_2700_20190621-swim-930049297.fit";
+        File updatedFitFile = new File(filepath);
+        assertTrue("Updated fit file " + filepath + " did not get created", updatedFitFile.exists());
     }
 }

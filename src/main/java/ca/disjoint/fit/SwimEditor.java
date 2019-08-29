@@ -3,6 +3,8 @@ package ca.disjoint.fit;
 import com.garmin.fit.LengthMesg;
 import com.garmin.fit.SwimStroke;
 import com.garmin.fit.LengthType;
+import com.garmin.fit.RecordMesg;
+import com.garmin.fit.DateTime;
 
 import picocli.CommandLine;
 import picocli.CommandLine.Mixin;
@@ -48,6 +50,9 @@ public class SwimEditor implements Callable<Integer> {
             "--no-randomize-ctime" }, negatable = true, description = "Randomize the activity start time. This allows you to upload duplicate activities to Strava, Garmin Connect, and other similar services (default: ${DEFAULT-VALUE})")
     private boolean randomizeCreationTime = true;
 
+    @Option(names = "--hr-data", arity = "0..1", paramLabel = "FILE", description = "FIT file containing HR data.")
+    private File hrFitFile = null;
+
     private static final Logger LOGGER = LogManager.getLogger(SwimEditor.class);
 
     private Terminal terminal;
@@ -55,6 +60,7 @@ public class SwimEditor implements Callable<Integer> {
     private final OutputStream output;
     private final String[] cliArgs;
     private GarminSwimActivity garminSwimActivity;
+    private GarminGenericActivity hrActivity;
     private LineReader reader;
 
     public SwimEditor(final InputStream input, final OutputStream output, final Terminal terminal,
@@ -72,7 +78,6 @@ public class SwimEditor implements Callable<Integer> {
 
         try {
             float poolLength = 0f;
-            String updatedFitFileName = "";
             garminSwimActivity = new GarminSwimActivity();
             GarminActivityLoader gal = new GarminActivityLoader(swimmingFitFile, garminSwimActivity);
 
@@ -90,16 +95,23 @@ public class SwimEditor implements Callable<Integer> {
 
                 // Allow the user to edit the individual laps/strokes
                 editSwimLaps();
-
-                // Generate the newly updated FIT file
-                FitWriter fr = new FitWriter(garminSwimActivity, swimmingFitFile.getName());
-                updatedFitFileName = fr.writeFitFile();
             }
 
             terminal.writer().append(garminSwimActivity.getActivitySummaryHeader());
             terminal.writer().append(garminSwimActivity.getActivitySummary());
 
-            if (editMode) {
+            // Add the HR data to the swimming activity
+            if (hrFitFile != null) {
+                hrActivity = new GarminGenericActivity();
+                GarminActivityLoader hrLoader = new GarminActivityLoader(hrFitFile, hrActivity);
+                addHrDataToSwimActivity();
+            }
+
+            // Generate the newly updated FIT file
+            if (editMode || hrFitFile != null) {
+                FitWriter fr = new FitWriter(garminSwimActivity, swimmingFitFile.getName());
+                String updatedFitFileName = fr.writeFitFile();
+
                 AttributedStringBuilder asb = new AttributedStringBuilder();
                 asb.style(AttributedStyle.DEFAULT.foreground(AttributedStyle.GREEN));
                 asb.append(String.format("Editing complete - new FIT file available at: "));
@@ -316,5 +328,25 @@ public class SwimEditor implements Callable<Integer> {
         }
 
         return poolLength;
+    }
+
+    private void addHrDataToSwimActivity() {
+        if (garminSwimActivity.getHrMessages().size() > 0) {
+            throw new RuntimeException("Swimming fit file already contains HR data.");
+        }
+
+        LOGGER.log(Level.DEBUG, "Clearing out all RecordMesg entries in the swim activity");
+        List<RecordMesg> clonedSwimRecordMsgs = garminSwimActivity.deleteRecordMessages();
+
+        // Obtain the HR and "filled in" records, in order to account for some missing stretches
+        List<RecordMesg> hrRecords = Utils.getFilledInRecordMsgs(hrActivity.getRecordMessages());
+        DateTime activityEnd = garminSwimActivity.getSessionMesg().getTimestamp();
+        for (RecordMesg mesg : hrRecords) {
+            // Discard any HR messages after the activity has finished
+            if (mesg.getTimestamp().compareTo(activityEnd) > 0) {
+                continue;
+            }
+            garminSwimActivity.addRecordMessage(mesg);
+        }
     }
 }

@@ -64,9 +64,9 @@ public class GarminActivityLoader {
         mesgBroadcaster.addListener((RecordMesgListener) reader);
         mesgBroadcaster.addListener((HrMesgListener) reader);
 
-        LOGGER.log(Level.DEBUG, "Decoding FIT file");
+        LOGGER.log(Level.DEBUG, "Decoding FIT file: " + fitFile.getName());
         boolean status = decode.read(in, mesgBroadcaster, mesgBroadcaster);
-        LOGGER.log(Level.DEBUG, "FIT file decoding complete, status: " + status);
+        LOGGER.log(Level.DEBUG, "FIT file decoding complete for file " + fitFile.getName() + ", status: " + status);
 
         in.close();
         LOGGER.log(Level.DEBUG, "FIT file handle successfully closed");

@@ -132,6 +132,12 @@ public abstract class GarminActivity {
         return recordMessages;
     }
 
+    public final List<RecordMesg> deleteRecordMessages() {
+        List<RecordMesg> clonedList = new ArrayList<RecordMesg>(recordMessages);
+        recordMessages.clear();
+        return clonedList;
+    }
+
     public final void addEventMessage(final EventMesg mesg) {
         Utils.logFitMessage(mesg);
         eventMessages.add(mesg);

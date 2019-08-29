@@ -76,6 +76,7 @@ public final class FitWriter {
             Utils.logFitMessage(m);
             fitFile.write(m);
         }
+        LOGGER.log(Level.DEBUG, "=========== Debug logging sorted messages complete ===========");
 
         byte[] rawBytes = fitFile.close();
         OutputStream os = new FileOutputStream(newFilename);

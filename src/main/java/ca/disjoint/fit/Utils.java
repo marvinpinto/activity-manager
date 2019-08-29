@@ -15,10 +15,15 @@ import java.time.format.DateTimeFormatter;
 import java.time.ZoneId;
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.List;
+import java.util.ArrayList;
 
 import com.garmin.fit.Decode;
 import com.garmin.fit.Mesg;
 import com.garmin.fit.Field;
+import com.garmin.fit.DateTime;
+import com.garmin.fit.RecordMesg;
 
 import org.apache.commons.text.WordUtils;
 
@@ -107,9 +112,18 @@ public final class Utils {
                 }
 
                 LOGGER.log(Level.DEBUG, String.format("    %s: %s", fn, output));
+
+                // Special case for getters that return a Garmin DateTime object
+                if (output instanceof DateTime) {
+                    LOGGER.log(Level.TRACE,
+                            String.format("Output \"%s\" appears to be a Garmin DateTime object", output));
+                    DateTime d = (DateTime) output;
+                    LOGGER.log(Level.DEBUG, String.format("       - raw timestamp: %s", d.getTimestamp()));
+                }
             } catch (Exception ex) {
+                LOGGER.log(Level.TRACE, "Error: " + ex.getMessage());
                 LOGGER.log(Level.TRACE, "Getter method name " + fn + " for field " + f.getName()
-                        + "appears to be incorrect, moving on.");
+                        + " appears to be incorrect, moving on.");
             }
 
         }
@@ -126,5 +140,58 @@ public final class Utils {
             Configurator.setRootLevel(Level.WARN);
             LOGGER.log(Level.INFO, "WARN logging enabled");
         }
+    }
+
+    public static List<RecordMesg> getFilledInRecordMsgs(final List<RecordMesg> hrRecords) {
+        List<RecordMesg> fillerRecords = new ArrayList<RecordMesg>();
+
+        // Clone & sort the incoming records, by timestamp
+        // Note that we only really care about the timestamp & heartrate fields here
+        List<RecordMesg> records = new ArrayList<RecordMesg>();
+        for (RecordMesg rec : hrRecords) {
+            if (rec.getHeartRate() == null) {
+                // Ignore any non-HR records
+                continue;
+            }
+            RecordMesg newRec = new RecordMesg();
+            newRec.setTimestamp(rec.getTimestamp());
+            newRec.setHeartRate(rec.getHeartRate());
+            records.add(newRec);
+        }
+        records.sort(new GarminDateTimeComparator<RecordMesg>());
+
+        for (int i = 1; i < records.size(); i++) {
+            RecordMesg prevMesg = records.get(i - 1);
+            RecordMesg mesg = records.get(i);
+
+            DateTime prevTs = prevMesg.getTimestamp();
+            DateTime currTs = mesg.getTimestamp();
+            long tsDifference = currTs.getTimestamp() - prevTs.getTimestamp();
+
+            if (tsDifference <= 1) {
+                continue;
+            }
+
+            LOGGER.log(Level.INFO, "Generating " + tsDifference + " filler HR records to account for missing time");
+            short prevHr = prevMesg.getHeartRate();
+            short currHr = mesg.getHeartRate();
+            LOGGER.log(Level.TRACE, "PrevHR: " + prevHr + ", currHr: " + currHr);
+            for (int x = 1; x <= tsDifference; x++) {
+                // Generate a random value between min(prevHr, currHr) and max(prevHr, currHr)
+                short randHr = (short) ThreadLocalRandom.current().nextInt(Math.min(prevHr, currHr),
+                        Math.max(prevHr, currHr) + 1);
+
+                DateTime newTs = new DateTime(prevTs);
+                newTs.add(x);
+                RecordMesg fillerMesg = new RecordMesg();
+                fillerMesg.setTimestamp(newTs);
+                fillerMesg.setHeartRate(randHr);
+                fillerRecords.add(fillerMesg);
+            }
+        }
+
+        records.addAll(fillerRecords);
+        records.sort(new GarminDateTimeComparator<RecordMesg>());
+        return records;
     }
 }
