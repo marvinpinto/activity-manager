@@ -15,6 +15,7 @@ import org.apache.logging.log4j.LogManager;
 import com.garmin.fit.Fit;
 import com.garmin.fit.BufferEncoder;
 import com.garmin.fit.Mesg;
+import com.garmin.fit.HrMesg;
 import com.garmin.fit.LengthMesg;
 import com.garmin.fit.EventMesg;
 import com.garmin.fit.DeviceInfoMesg;
@@ -77,6 +78,34 @@ public final class FitWriter {
             fitFile.write(m);
         }
         LOGGER.log(Level.DEBUG, "=========== Debug logging sorted messages complete ===========");
+
+        LOGGER.log(Level.DEBUG, "Writing HrMesg entries to the FIT file");
+        for (HrMesg m : garminActivity.getHrMessages()) {
+            HrMesg newMsg = new HrMesg();
+            if (m.getTimestamp() != null) {
+                newMsg.setTimestamp(m.getTimestamp());
+            }
+            for (int i = 0; i < m.getNumEventTimestamp(); i++) {
+                newMsg.setEventTimestamp(i, m.getEventTimestamp(i));
+            }
+            if (m.getFractionalTimestamp() != null) {
+                newMsg.setFractionalTimestamp(m.getFractionalTimestamp());
+            }
+            for (int i = 0; i < m.getNumFilteredBpm(); i++) {
+                newMsg.setFilteredBpm(i, m.getFilteredBpm(i));
+            }
+
+            // Avoid writing out the event_timestamp_12 entries (for now) as
+            // they seem to be causing overflow issues with the other `hr`
+            // fields. Uncomment the block below and run the `FitWriter` tests
+            // for clarification.
+            // for (int i=0;i<m.getNumEventTimestamp12(); i++) {
+            // newMsg.setEventTimestamp12(i, m.getEventTimestamp12(i));
+            // }
+
+            Utils.logFitMessage(newMsg);
+            fitFile.write(newMsg);
+        }
 
         byte[] rawBytes = fitFile.close();
         OutputStream os = new FileOutputStream(newFilename);
