@@ -368,4 +368,51 @@ public class SwimEditorTest {
         File updatedFitFile = new File(filepath);
         assertTrue("Updated fit file " + filepath + " did not get created", updatedFitFile.exists());
     }
+
+    @Test
+    public void shouldUpdateLapSummaryToMixed() throws IOException, InterruptedException {
+        StringBuilder sb = new StringBuilder();
+        URL url = this.getClass().getResource("/basic-swim.fit");
+        String[] args = { "--verbose", "--edit", url.getFile() };
+
+        PipedInputStream pin = new PipedInputStream();
+        PipedOutputStream pout = new PipedOutputStream();
+        pout.connect(pin);
+        terminal = getCustomizedTerminal(pin, outContent);
+
+        Thread th = new Thread() {
+            public void run() {
+                try {
+                    Thread.sleep(10);
+                    // Enter to accept the preset pool length of 22.86
+                    sb.append("\n");
+                    // Edit lap #1
+                    sb.append("1\n");
+                    // Backspace to erase the preset (current) stroke (erases "breaststroke")
+                    sb.append("\b\b\b\b\b\b\b\b\b\b\b\b");
+                    // Enter "freestyle" as the stroke
+                    sb.append("freestyle\n");
+                    // Hit "enter" 5 times to accept the default (current) strokes
+                    sb.append("\n\n\n\n\n");
+                    // Enter -1 to simulate ctrl+d, to signal we don't wish to edit any more laps
+                    sb.append("-1\n");
+                    pout.write(sb.toString().getBytes());
+                    pout.flush();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+        th.start();
+
+        inst = new SwimEditor(pin, outContent, terminal, args);
+        int exitCode = inst.start();
+        th.join();
+
+        String plainOutput = AttributedString.stripAnsi(outContent.toString());
+        assertThat(exitCode, equalTo(CommandLine.ExitCode.OK));
+        boolean matches = TestUtils.doesRegexPatternMatch(".*Lap 1.*6.lengths.*(MIXED).*04:40.*", plainOutput);
+        assertTrue("Output did not contain \"[Lap 1]  6 lengths  (MIXED)        04:40\" - output: " + plainOutput,
+                matches);
+    }
 }

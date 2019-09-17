@@ -224,6 +224,25 @@ public class SwimEditor implements Callable<Integer> {
             }
         }
 
+        // Determine the displayed length "summary" stroke (MIXED, etc)
+        SwimStroke lapSummaryStroke = null;
+        for (int i = 0; i < lengths.size(); i++) {
+            LengthMesg length = lengths.get(i);
+
+            // Initial case
+            if (lapSummaryStroke == null) {
+                lapSummaryStroke = length.getSwimStroke();
+                continue;
+            }
+
+            // If the current stroke is something difference, set the summary to "mixed"
+            if (lapSummaryStroke != length.getSwimStroke()) {
+                lapSummaryStroke = SwimStroke.MIXED;
+                break;
+            }
+        }
+        lap.getLapMessage().setSwimStroke(lapSummaryStroke);
+
         // Finally replace the model with this newly updated lap (probably un-necessary?)
         garminSwimActivity.replaceGarminLap(lapNumber, lap);
     }
