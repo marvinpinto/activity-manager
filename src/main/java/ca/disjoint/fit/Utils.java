@@ -18,6 +18,12 @@ import java.util.Arrays;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.zip.ZipFile;
+import java.util.zip.ZipException;
+import java.util.Enumeration;
+import java.util.zip.ZipEntry;
+import java.nio.file.StandardCopyOption;
+import java.nio.file.Files;
 
 import com.garmin.fit.Decode;
 import com.garmin.fit.Mesg;
@@ -193,5 +199,38 @@ public final class Utils {
         records.addAll(fillerRecords);
         records.sort(new GarminDateTimeComparator<RecordMesg>());
         return records;
+    }
+
+    public static File extractZippedFitFile(final File zippedFile) throws IOException {
+        ZipFile fitZip;
+        try {
+            fitZip = new ZipFile(zippedFile);
+        } catch (ZipException ex) {
+            LOGGER.log(Level.INFO, "File " + zippedFile.getName()
+                    + " does not appear to be a valid zip file, assuming it's an unzipped fit file.");
+            LOGGER.log(Level.TRACE, "Exception: " + ex.getMessage());
+            return zippedFile;
+        }
+
+        Enumeration<? extends ZipEntry> entries = fitZip.entries();
+        while (entries.hasMoreElements()) {
+            ZipEntry entry = entries.nextElement();
+            String filename = entry.getName();
+
+            // Process the first encountered .fit file
+            if (filename.toLowerCase().endsWith(".fit")) {
+                LOGGER.log(Level.TRACE, "Extracting FIT file " + filename + " to the filesystem");
+                File tempFile = File.createTempFile(filename, null);
+                tempFile.deleteOnExit();
+
+                InputStream in = fitZip.getInputStream(entry);
+                Files.copy(in, tempFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                return tempFile;
+            }
+
+            LOGGER.log(Level.TRACE, "Ignoring file " + filename + " as it is not a FIT file");
+        }
+
+        throw new RuntimeException("Error: Zip file " + zippedFile.getName() + " did not contain any .fit files");
     }
 }

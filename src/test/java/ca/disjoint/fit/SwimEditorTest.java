@@ -89,7 +89,7 @@ public class SwimEditorTest {
         int exitCode = inst.start();
 
         assertThat(exitCode, equalTo(CommandLine.ExitCode.SOFTWARE));
-        assertThat(errContent.toString(), startsWith("Error: FILEDOESNOTEXIST (No such file or directory)"));
+        assertThat(errContent.toString(), startsWith("Error: FILEDOESNOTEXIST"));
     }
 
     @Test
@@ -348,6 +348,23 @@ public class SwimEditorTest {
 
         String filepath = System.getProperty("java.io.tmpdir") + FileSystems.getDefault().getSeparator()
                 + "maven-tests/1_2700_20190621-swim-930049297.fit";
+        File updatedFitFile = new File(filepath);
+        assertTrue("Updated fit file " + filepath + " did not get created", updatedFitFile.exists());
+    }
+
+    @Test
+    public void shouldHandleZippedSwimData() throws IOException, InterruptedException {
+        URL swimActivity = this.getClass().getResource("/1_2700_20190906-swim.zip");
+        URL hrActivity = this.getClass().getResource("/1_2347_20190906-hr.zip");
+        String[] args = { "--no-randomize-ctime", "--verbose", "--hr-data", hrActivity.getFile(),
+                swimActivity.getFile() };
+
+        inst = new SwimEditor(inContent, outContent, terminal, args);
+        int exitCode = inst.start();
+        assertThat(exitCode, equalTo(CommandLine.ExitCode.OK));
+
+        String filepath = System.getProperty("java.io.tmpdir") + FileSystems.getDefault().getSeparator()
+                + "maven-tests/1_2700_20190906-swim-936702643.fit";
         File updatedFitFile = new File(filepath);
         assertTrue("Updated fit file " + filepath + " did not get created", updatedFitFile.exists());
     }

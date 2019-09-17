@@ -127,7 +127,7 @@ public final class FitWriter {
         String[] tokens = originalFileName.split("\\.(?=[^\\.]+$)");
         String base = tokens[0];
         String ext = tokens[1];
-        String newFileName = base + "-" + garminActivity.getCreationTime().getTimestamp() + "." + ext;
+        String newFileName = base + "-" + garminActivity.getCreationTime().getTimestamp() + ".fit";
         LOGGER.log(Level.DEBUG, "Checking to see if filename \"" + newFileName + "\" is useable");
 
         File newFile = new File(newFileName);

@@ -38,13 +38,14 @@ public class GarminActivityLoader {
     private List<LengthMesg> lengthMessages;
     private GarminActivity garminActivity;
 
-    public GarminActivityLoader(final File fitFile, final GarminActivity garminActivity)
+    public GarminActivityLoader(final File inputFile, final GarminActivity garminActivity)
             throws FileNotFoundException, IOException {
         Decode decode = new Decode();
         MesgBroadcaster mesgBroadcaster = new MesgBroadcaster(decode);
         reader = new DataReader();
         this.garminActivity = garminActivity;
         lengthMessages = new ArrayList<LengthMesg>();
+        File fitFile = Utils.extractZippedFitFile(inputFile);
 
         boolean fitIntegrityStatus = Utils.checkFitFileIntegrity(fitFile);
         if (!fitIntegrityStatus) {

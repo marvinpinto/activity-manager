@@ -93,12 +93,23 @@ public class FitDumperTest {
         int exitCode = inst.start();
 
         assertThat(exitCode, equalTo(CommandLine.ExitCode.SOFTWARE));
-        assertThat(errContent.toString(), startsWith("Error: FILEDOESNOTEXIST (No such file or directory)"));
+        assertThat(errContent.toString(), startsWith("Error: FILEDOESNOTEXIST"));
     }
 
     @Test
     public void shouldProcessRunData() {
         URL url = this.getClass().getResource("/1_2700_sample-run.fit");
+        String[] args = { "-v", url.getFile() };
+        inst = new FitDumper(inContent, outContent, terminal, args);
+        int exitCode = inst.start();
+
+        String plainOutput = AttributedString.stripAnsi(outContent.toString());
+        assertThat(plainOutput, startsWith("Generic activity loaded successfully, see log file for details."));
+    }
+
+    @Test
+    public void shouldProcessZippedSwimData() {
+        URL url = this.getClass().getResource("/1_2700_20190906-swim.zip");
         String[] args = { "-v", url.getFile() };
         inst = new FitDumper(inContent, outContent, terminal, args);
         int exitCode = inst.start();
