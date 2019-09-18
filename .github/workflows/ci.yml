@@ -1,0 +1,34 @@
+---
+name: 'ci'
+
+on:
+  - 'push'
+  - 'pull_request'
+
+jobs:
+  ci-test:
+    name: 'Build & Test'
+    runs-on: 'ubuntu-16.04'
+
+    steps:
+      - name: 'git checkout source'
+        uses: 'actions/checkout@v1'
+        with:
+          lfs: true
+
+      - name: 'Set up JDK 11'
+        uses: 'actions/setup-java@v1'
+        with:
+          java-version: '11.x'
+
+      - name: 'Download FIT SDK'
+        env:
+          FIT_SDK_VERSION: '20.96.00'
+        run: |
+          curl --progress-bar -o /tmp/FitSDKRelease_${FIT_SDK_VERSION}.zip https://www.thisisant.com/assets/resources/FIT/FitSDKRelease_${FIT_SDK_VERSION}.zip
+          unzip -j /tmp/FitSDKRelease_${FIT_SDK_VERSION}.zip "java/fit.jar" -d ./
+
+      - name: 'Build & test with Maven'
+        env:
+          TZ: 'America/Toronto'
+        run: 'mvn --no-transfer-progress clean verify'
