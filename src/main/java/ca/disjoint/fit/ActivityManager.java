@@ -25,18 +25,19 @@ import org.jline.terminal.TerminalBuilder;
 import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;
 
-@Command(name = "fit", mixinStandardHelpOptions = true, versionProvider = FitEditor.PropertiesVersionProvider.class, description = "Console application to edit Garmin FIT files.", synopsisSubcommandLabel = "COMMAND", subcommands = {
+@Command(name = "fit", mixinStandardHelpOptions = true, versionProvider = ActivityManager.PropertiesVersionProvider.class, description = "Console application to edit Garmin FIT files.", synopsisSubcommandLabel = "COMMAND", subcommands = {
         HelpCommand.class }, usageHelpAutoWidth = true)
-public class FitEditor implements Callable<Integer> {
+public class ActivityManager implements Callable<Integer> {
     private Terminal terminal;
     private final InputStream input;
     private final OutputStream output;
     private final String[] cliArgs;
     private LineReader reader;
 
-    private static final Logger LOGGER = LogManager.getLogger(FitEditor.class);
+    private static final Logger LOGGER = LogManager.getLogger(ActivityManager.class);
 
-    public FitEditor(final InputStream input, final OutputStream output, final Terminal terminal, final String[] args) {
+    public ActivityManager(final InputStream input, final OutputStream output, final Terminal terminal,
+            final String[] args) {
         this.input = input;
         this.output = output;
         this.cliArgs = args;
@@ -54,8 +55,8 @@ public class FitEditor implements Callable<Integer> {
 
     public static void main(final String[] args) throws IOException {
         Terminal term = TerminalBuilder.builder().system(true).signalHandler(Terminal.SignalHandler.SIG_IGN).build();
-        FitEditor fiteditor = new FitEditor(System.in, System.out, term, args);
-        int exitCode = fiteditor.start();
+        ActivityManager inst = new ActivityManager(System.in, System.out, term, args);
+        int exitCode = inst.start();
         System.exit(exitCode);
     }
 
@@ -76,7 +77,7 @@ public class FitEditor implements Callable<Integer> {
             }
             Properties properties = new Properties();
             properties.load(url.openStream());
-            return new String[] { "FitEditor v" + properties.getProperty("application.version"),
+            return new String[] { "ActivityManager v" + properties.getProperty("application.version"),
                     String.format("FIT protocol %d.%d, profile %.2f %s", Fit.PROTOCOL_VERSION_MAJOR,
                             Fit.PROTOCOL_VERSION_MINOR, Fit.PROFILE_VERSION / 100.0, Fit.PROFILE_TYPE) };
         }

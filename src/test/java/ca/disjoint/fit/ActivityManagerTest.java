@@ -20,11 +20,11 @@ import org.jline.terminal.impl.DumbTerminal;
 
 import java.nio.charset.StandardCharsets;
 
-import ca.disjoint.fit.FitEditor;
+import ca.disjoint.fit.ActivityManager;
 import ca.disjoint.fit.TestUtils;
 
-public class FitEditorTest {
-    private FitEditor inst;
+public class ActivityManagerTest {
+    private ActivityManager inst;
     private ByteArrayInputStream inContent = null;
     private final ByteArrayOutputStream outContent = new ByteArrayOutputStream();
     private final ByteArrayOutputStream errContent = new ByteArrayOutputStream();
@@ -64,17 +64,17 @@ public class FitEditorTest {
     @Test
     public void shouldPrintVersionWhenRequested() {
         String[] args = { "--version" };
-        inst = new FitEditor(inContent, outContent, terminal, args);
+        inst = new ActivityManager(inContent, outContent, terminal, args);
         int exitCode = inst.start();
 
         assertThat(exitCode, equalTo(CommandLine.ExitCode.OK));
-        assertThat(outContent.toString(), startsWith("FitEditor v"));
+        assertThat(outContent.toString(), startsWith("ActivityManager v"));
     }
 
     @Test
     public void shouldFailIfNoSubcommandProvided() {
         String[] args = {};
-        inst = new FitEditor(inContent, outContent, terminal, args);
+        inst = new ActivityManager(inContent, outContent, terminal, args);
         int exitCode = inst.start();
 
         assertThat(exitCode, equalTo(CommandLine.ExitCode.USAGE));
@@ -84,7 +84,7 @@ public class FitEditorTest {
     @Test
     public void shouldFailIfInvalidArgSupplied() {
         String[] args = { "--asdfasdfasdfasf" };
-        inst = new FitEditor(inContent, outContent, terminal, args);
+        inst = new ActivityManager(inContent, outContent, terminal, args);
         int exitCode = inst.start();
 
         assertThat(exitCode, equalTo(CommandLine.ExitCode.USAGE));
@@ -94,7 +94,7 @@ public class FitEditorTest {
     @Test
     public void shouldInvokeHelpSubcommand() {
         String[] args = { "help" };
-        inst = new FitEditor(inContent, outContent, terminal, args);
+        inst = new ActivityManager(inContent, outContent, terminal, args);
         int exitCode = inst.start();
 
         assertThat(exitCode, equalTo(CommandLine.ExitCode.OK));
@@ -104,7 +104,7 @@ public class FitEditorTest {
     @Test
     public void shouldInvokeSwimSubcommand() {
         String[] args = { "swim" };
-        inst = new FitEditor(inContent, outContent, terminal, args);
+        inst = new ActivityManager(inContent, outContent, terminal, args);
         int exitCode = inst.start();
 
         assertThat(exitCode, equalTo(CommandLine.ExitCode.USAGE));
@@ -114,7 +114,7 @@ public class FitEditorTest {
     @Test
     public void shouldInvokeDumpSubcommand() {
         String[] args = { "dump" };
-        inst = new FitEditor(inContent, outContent, terminal, args);
+        inst = new ActivityManager(inContent, outContent, terminal, args);
         int exitCode = inst.start();
 
         assertThat(exitCode, equalTo(CommandLine.ExitCode.USAGE));

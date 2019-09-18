@@ -1,4 +1,4 @@
-# Garmin Fit Customizer
+# Garmin Activity Manager
 
 ### Getting Started
 - You will need a working JDK environment.
@@ -11,7 +11,7 @@ from doing so.
 
 ### Development
 - `mvn clean package`
-- `java -cp fit.jar:target/fit-editor-1.0-SNAPSHOT-jar-with-dependencies.jar ca.disjoint.fit.FitEditor`
+- `java -cp fit.jar:target/activity-manager-1.0-SNAPSHOT-jar-with-dependencies.jar ca.disjoint.fit.ActivityManager`
 - `mvn formatter:format`
 - `mvn test`
 - `mvn clean verify`
