@@ -1,5 +1,7 @@
 # Garmin Activity Manager
 
+[![GitHub Actions status](https://github.com/marvinpinto/activity-manager/workflows/ci/badge.svg)](https://github.com/marvinpinto/activity-manager/actions)
+
 ### Getting Started
 - You will need a working JDK environment.
 
