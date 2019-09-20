@@ -23,7 +23,7 @@ jobs:
 
       - name: 'Install the fit.jar bundle locally'
         env:
-          FIT_SDK_VERSION: '20.96.00'
+          FIT_SDK_VERSION: '21.14.00'
         run: |
           mvn --no-transfer-progress install:install-file -Dfile=fit-${FIT_SDK_VERSION}.jar -DgroupId=com.garmin.fit -DartifactId=fit-sdk -Dversion=${FIT_SDK_VERSION} -Dpackaging=jar
 
