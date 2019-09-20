@@ -3,15 +3,17 @@
 ### Getting Started
 - You will need a working JDK environment.
 
-- Download the [Garmin FIT SDK](https://www.thisisant.com/resources/fit), and
-extract the `java/fit.jar` file into the root (development) directory. This
-will be used by the maven build as well as during runtime. Note that I cannot
-bundle the `fit.jar` file into this project as the Garmin license prohibits me
-from doing so.
+- Accept the [Garmin FIT SDK license](https://www.thisisant.com/resources/fit)
+as this project makes use of their SDK.
+
+- Install the fit.jar bundle locally:
+  ``` bash
+  mvn install:install-file -Dfile=fit-20.96.00.jar -DgroupId=com.garmin.fit -DartifactId=fit-sdk -Dversion=20.96.00 -Dpackaging=jar
+  ```
 
 ### Development
 - `mvn clean package`
-- `java -cp fit.jar:target/activity-manager-VERSION-jar-with-dependencies.jar ca.disjoint.fit.ActivityManager`
+- `java -jar target/activity-manager-VERSION-jar-with-dependencies.jar`
 - `mvn formatter:format`
 - `mvn test`
 - `mvn clean verify`

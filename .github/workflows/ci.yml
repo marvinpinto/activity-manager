@@ -21,12 +21,11 @@ jobs:
         with:
           java-version: '11.x'
 
-      - name: 'Download FIT SDK'
+      - name: 'Install the fit.jar bundle locally'
         env:
           FIT_SDK_VERSION: '20.96.00'
         run: |
-          curl --progress-bar -o /tmp/FitSDKRelease_${FIT_SDK_VERSION}.zip https://www.thisisant.com/assets/resources/FIT/FitSDKRelease_${FIT_SDK_VERSION}.zip
-          unzip -j /tmp/FitSDKRelease_${FIT_SDK_VERSION}.zip "java/fit.jar" -d ./
+          mvn --no-transfer-progress install:install-file -Dfile=fit-${FIT_SDK_VERSION}.jar -DgroupId=com.garmin.fit -DartifactId=fit-sdk -Dversion=${FIT_SDK_VERSION} -Dpackaging=jar
 
       - name: 'Build & test with Maven'
         env:

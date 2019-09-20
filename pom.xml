@@ -14,9 +14,7 @@
     <dependency>
       <groupId>com.garmin.fit</groupId>
       <artifactId>fit-sdk</artifactId>
-      <version>20.94.00</version>
-      <scope>system</scope>
-      <systemPath>${project.basedir}/fit.jar</systemPath>
+      <version>20.96.00</version>
     </dependency>
     <dependency>
       <groupId>junit</groupId>
@@ -85,10 +83,6 @@
             <manifest>
               <mainClass>ca.disjoint.fit.ActivityManager</mainClass>
             </manifest>
-            <manifestEntries>
-              <Class-Path>fit.jar</Class-Path>
-              <Multi-Release>true</Multi-Release>
-            </manifestEntries>
           </archive>
         </configuration>
         <executions>
