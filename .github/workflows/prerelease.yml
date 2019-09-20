@@ -1,0 +1,117 @@
+---
+name: 'prerelease'
+
+on:
+  push:
+    branches:
+      - 'master'
+
+jobs:
+  prerelease:
+    name: 'Pre Release'
+    runs-on: 'ubuntu-16.04'
+
+    steps:
+      - name: 'git checkout source'
+        uses: 'actions/checkout@v1'
+        with:
+          lfs: true
+
+      - name: 'Set up JDK 11'
+        uses: 'actions/setup-java@v1'
+        with:
+          java-version: '11.x'
+
+      - name: 'Install the fit.jar bundle locally'
+        env:
+          FIT_SDK_VERSION: '20.96.00'
+        run: |
+          mvn --no-transfer-progress install:install-file -Dfile=fit-${FIT_SDK_VERSION}.jar -DgroupId=com.garmin.fit -DartifactId=fit-sdk -Dversion=${FIT_SDK_VERSION} -Dpackaging=jar
+
+      - name: 'Generate release jar file'
+        env:
+          TZ: 'America/Toronto'
+        run: 'mvn --no-transfer-progress clean verify package'
+
+      - name: 'Rename the release jar file'
+        run: 'cp target/activity-manager-*-jar-with-dependencies.jar target/activity-manager.jar'
+
+      - name: 'Create or update the "latest" tag'
+        uses: 'actions/github-script@0.2.0'
+        with:
+          github-token: ${{github.token}}
+          script: |
+            console.log(`Generating "latest" tag corresponding to SHA ${context.sha}`);
+
+            const refInfo = {
+              owner: context.payload.repository.owner.login,
+              repo: context.payload.repository.name,
+              sha: context.sha,
+            };
+
+            try {
+              await github.git.createRef({
+                ...refInfo,
+                ref: 'refs/tags/latest',
+              });
+            } catch (err) {
+              console.log(`Unable to create a new tag: ${err}`);
+              console.log('Attempting to update an existing tag');
+              await github.git.updateRef({
+                ...refInfo,
+                ref: 'tags/latest',
+                force: true,
+              });
+            }
+
+      - name: 'Create the "latest" pre-release'
+        uses: 'actions/github-script@0.2.0'
+        with:
+          github-token: ${{github.token}}
+          script: |
+            const require = global.require || global.process.mainModule.constructor._load;
+            const {lstatSync, readFileSync} = require('fs');
+            const releaseInfo = {
+              owner: context.payload.repository.owner.login,
+              repo: context.payload.repository.name,
+              tag_name: 'latest',
+              name: 'Latest',
+              prerelease: true,
+              body: `Automatically generated from the current master branch (${context.sha})`,
+            };
+
+            console.log(`Attempting to get the ${releaseInfo.owner}/${releaseInfo.repo} release associated with tag "latest"`);
+            try {
+              const resp = await github.repos.getReleaseByTag({
+                owner: releaseInfo.owner,
+                repo: releaseInfo.repo,
+                tag: 'latest',
+              });
+              console.log(`Deleting release associated with tag "latest": ${resp.data.id}`);
+              await github.repos.deleteRelease({
+                owner: context.payload.repository.owner.login,
+                repo: context.payload.repository.name,
+                release_id: resp.data.id,
+              });
+            } catch(err) {
+              console.log(`There does not appear to be a release tag associated with "latest" in repo ${context.payload.repository.owner.login}/${context.payload.repository.name} (Error: ${err})`);
+            }
+
+            console.log('Creating a new release for the "latest" tag');
+            const releaseResp = await github.repos.createRelease({
+              ...releaseInfo,
+            });
+            const releaseUploadUrl = releaseResp.data.upload_url;
+            const releaseId = releaseResp.data.id;
+
+            console.log('Uploading updated activity-manager.jar as a release asset');
+            const assetPath = 'target/activity-manager.jar';
+            await github.repos.uploadReleaseAsset({
+              url: releaseUploadUrl,
+              headers: {
+                'content-length': lstatSync(assetPath).size,
+                'content-type': 'application/java-archive',
+              },
+              name: 'activity-manager.jar',
+              file: readFileSync(assetPath),
+            });
