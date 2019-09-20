@@ -1,21 +1,32 @@
 # Garmin Activity Manager
 
+[![GitHub Actions status](https://github.com/marvinpinto/activity-manager/workflows/ci/badge.svg)](https://github.com/marvinpinto/activity-manager/actions)
+
 ### Getting Started
 - You will need a working JDK environment.
 
-- Download the [Garmin FIT SDK](https://www.thisisant.com/resources/fit), and
-extract the `java/fit.jar` file into the root (development) directory. This
-will be used by the maven build as well as during runtime. Note that I cannot
-bundle the `fit.jar` file into this project as the Garmin license prohibits me
-from doing so.
+- Accept the [Garmin FIT SDK license](https://www.thisisant.com/resources/fit)
+as this project makes use of their SDK.
+
+- Install the fit.jar bundle locally:
+  ``` bash
+  mvn install:install-file -Dfile=fit-20.96.00.jar -DgroupId=com.garmin.fit -DartifactId=fit-sdk -Dversion=20.96.00 -Dpackaging=jar
+  ```
 
 ### Development
 - `mvn clean package`
-- `java -cp fit.jar:target/activity-manager-1.0-SNAPSHOT-jar-with-dependencies.jar ca.disjoint.fit.ActivityManager`
+- `java -jar target/activity-manager-VERSION-jar-with-dependencies.jar`
 - `mvn formatter:format`
 - `mvn test`
 - `mvn clean verify`
 - `mvn -Dmaven.test.skip=true clean package`
+
+### Creating a new release
+- Do this work on master: `git checkout master`
+- Update the version string in `pom.xml` and commit the changes.
+- Create a new version tag: `git tag v1.2.3`
+- Update the remote master branch: `git push origin master:master`
+- Update GitHub with all the local tag(s): `git push --tags`
 
 ### Tools
 - View the contents of a file within the jar using: `unzip -q -c myarchive.jar path/to/file`
