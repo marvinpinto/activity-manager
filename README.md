@@ -10,7 +10,7 @@ as this project makes use of their SDK.
 
 - Install the fit.jar bundle locally:
   ``` bash
-  mvn install:install-file -Dfile=fit-20.96.00.jar -DgroupId=com.garmin.fit -DartifactId=fit-sdk -Dversion=20.96.00 -Dpackaging=jar
+  mvn install:install-file -Dfile=fit-21.14.00.jar -DgroupId=com.garmin.fit -DartifactId=fit-sdk -Dversion=21.14.00 -Dpackaging=jar
   ```
 
 ### Development
